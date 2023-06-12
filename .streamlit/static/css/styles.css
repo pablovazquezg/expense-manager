@@ -1,0 +1,35 @@
+body {
+    color: #333;
+    font-family: Arial, sans-serif;
+}
+
+.large-blue-text {
+    font-size: 14px;
+    color: white;
+}
+
+.header {
+    color: white;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.description {
+    margin-bottom: 10px;
+}
+
+.category {
+    font-style: italic;
+}
+
+.update-category {
+    margin-top: 20px;
+}
