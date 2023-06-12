@@ -55,7 +55,7 @@ async def process_file(file_path: str) -> None:
 def read_file(file_path: str) -> pd.DataFrame:
     
     tx_list = pd.read_csv(file_path)
-    file_sample = tx_list.head(10).to_string(index=False)
+    file_sample = tx_list.head(6).to_string(index=False)
 
     split_credits_debits = inspect_file(file_sample, templates.CHECK_SPLIT_CREDITS_DEBITS)
 
