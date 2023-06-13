@@ -13,7 +13,7 @@ EXPENSE_CAT_TEMPLATE = """
     -Beauty: body
     -Clothing: clothing, shoes, accessories
     -Coffee Shops: coffee, cafe, tea, Starbucks, Dunkin
-    -Credit Card Payment: card payment
+    -Credit Card Payment: card payment, autopay
     -Dry Cleaning: cleaners, dry, cleaning
     -Education: kindle, tuition
     -Entertainment: event, show, movies, cinema, theater
@@ -36,7 +36,7 @@ EXPENSE_CAT_TEMPLATE = """
     -Taxes: tax, irs
     -Technology: technology, software, hardware, electronics
     -Transportation: bus, train, subway, metro, airline, uber, lyft, taxi
-    -Travel: travel, holiday, trip, airbnb, hotel, hostel, resort, kiwi, kayak, expedia, booking.com
+    -Travel: travel, holiday, trip, airbnb, kiwi, hotel, hostel, resort, kiwi, kayak, expedia, booking.com
     -Transfer: payment from
     -Utilities: electricity, water, gas, phone, internet
     -Other: use this when very uncertain about the category
