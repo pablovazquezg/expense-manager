@@ -2,33 +2,28 @@ import os
 import ast
 import json
 import pandas as pd
-from pandasai import PandasAI
 from typing import Any, List
 from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.output_parsers import PydanticOutputParser, OutputFixingParser
 from src.custom_classes import ShortList
 
 
-def inspect_data(tx_list: pd.DataFrame, prompt: str) -> List[str]:
-    from pandasai.llm.openai import OpenAI
-    pandas_ai = PandasAI(OpenAI())
+def inspect_data(data_sample: str, template: str) -> List[str]:
+    prompt = PromptTemplate.from_template(template)
+    llm = ChatOpenAI(temperature=0, client=Any)
+    prompt = PromptTemplate.from_template(template)    
+    chain = LLMChain(llm=llm, prompt=prompt)
+    raw_result = chain.run(input_data=data_sample.strip())
 
-    raw_result = pandas_ai(tx_list.head(), prompt=prompt)
-    result = json.dumps({"output": raw_result})
-    parser = PydanticOutputParser(pydantic_object=ShortList)
-    fixing_parser = OutputFixingParser.from_llm(
-        parser=parser, llm=ChatOpenAI()
-    )
-    # leverage ShortList pydantic model to validate output
+    parser = OutputFixingParser.from_llm(llm=llm, parser=PydanticOutputParser(pydantic_object=ShortList))
+    
     try:
-        result = parser.parse(result)
+        parsed_result = parser.parse(json.dumps({"output": raw_result}))
     except Exception as e:
-        print(
-            f"Error inspecting file\nError: {e}\nQuestion: {prompt}\nFailed with Output: {result}"
-        )
-        raise (e)
+        print(f"Parsing Error: {e}\n")
+        print(f"Raw Result: {raw_result}")
+        parsed_result = {"output": ['PARSING ERROR']}
 
-    return result.output  # type: ignore
+    return parsed_result.output  # type: ignore

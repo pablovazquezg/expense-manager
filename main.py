@@ -31,11 +31,11 @@ async def main():
     CSV_files = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV"))
     file_paths = csv_files + CSV_files
 
-    for f in file_paths:
-        await process_file(f)
+    # for f in file_paths:
+    #     await process_file(f)
     # For each file, create a new process and start it
-    # async with Pool() as pool:
-    #     results = await pool.map(process_file, file_paths)
+    async with Pool() as pool:
+        results = await pool.map(process_file, file_paths)
 
     # Merge all interim results; append results to output files
     merge_files(DATA_CHECKS_STAGE_FOLDER, DATA_CHECKS_OUTPUT_FILE)

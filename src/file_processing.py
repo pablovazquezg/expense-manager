@@ -42,7 +42,7 @@ async def process_file(file_path: str) -> None:
     file_name = f"data_checks_{timestamp}.csv"
     file_path = os.path.join(DATA_CHECKS_STAGE_FOLDER, file_name)
     with open(file_path, "w", encoding="utf-8") as file:
-        file.write(f"{file_name}: Total amount in: {total_amount_in}, Total amount out: {total_amount_out}, Total count in: {total_count_in}, Total count out: {total_count_out}\n\n")
+        file.write(f"{file_name}, {total_amount_in}, {total_amount_out}, {total_count_in}, {total_count_out}\n\n")
     
 
     # Save file to interim folder; all files will be merged at the end (see merge_interim_results() below)
@@ -55,7 +55,8 @@ async def process_file(file_path: str) -> None:
 def read_file(file_path: str) -> pd.DataFrame:
     
     tx_list = pd.read_csv(file_path)
-    split_credits_debits = inspect_data(tx_list, templates.CHECK_SPLIT_CREDITS_DEBITS)
+    data_sample = tx_list.head(10).to_string(index=False)
+    split_credits_debits = inspect_data(data_sample, templates.CHECK_SPLIT_CREDITS_DEBITS)
 
     # If C/D on different columns, consolidate (melt) them under a 'Type' column; keep  amounts in new column
     if split_credits_debits:
@@ -66,35 +67,20 @@ def read_file(file_path: str) -> pd.DataFrame:
         tx_list.dropna(subset=['Amount'], inplace=True)
 
     # Locate relevant columns (Date, Description, Amount, Type)
-    relevant_cols = inspect_data(tx_list, templates.RELEVANT_COLS_TEMPLATE)
+    data_sample = tx_list.head(0).to_string(index=False)
+    relevant_cols = inspect_data(data_sample, templates.RELEVANT_COLS_TEMPLATE)
 
     # Create array of desired column names
     standard_cols = ['Date', 'Description', 'Amount']
-    if len(relevant_cols) == 4:
-        standard_cols.append('Type')
 
     # Keep relevant columns and rename them to standard names (across all files to be processed)
     tx_list = tx_list.loc[:,relevant_cols].rename(columns=dict(zip(relevant_cols, standard_cols)))
 
-    # If input file contains tx type (debit/credit), take it from there; otherwise, infer it from the amount
-    if "Type" in tx_list.columns:
-        # if there is a type, make debit/credit values consistent: negative for debits, positive for credits
-        tx_list['Type'] = tx_list['Type'].map({'Debit': 'D', 'Credit': 'C', 'DEBIT': 'D', 'CREDIT': 'C'})
-        tx_list.loc[tx_list["Type"] == "D", "Amount"] = -abs(tx_list["Amount"])
-        tx_list.loc[tx_list["Type"] == "C", "Amount"] = abs(tx_list["Amount"])
-    else:
-        # add a column for the transaction type
-        tx_list.insert(1, "Type", "")
-
-        # If positive amounts are more, negate the sign for all transactions (assumption is there are more debits than credits)
-        positive_count = (tx_list["Amount"] > 0).sum()
-        negative_count = (tx_list["Amount"] < 0).sum()
-        if positive_count > negative_count:
-            tx_list.loc[:,"Amount"] = -tx_list.loc[:,"Amount"]
-
-        # Update the 'Type' column
-        tx_list.loc[tx_list["Amount"] < 0, "Type"] = "D"
-        tx_list.loc[tx_list["Amount"] >= 0, "Type"] = "C"
+    # Standardize Credits and Debits signs (assumes more Debits than Credits)
+    positive_count = (tx_list["Amount"] > 0).sum()
+    negative_count = (tx_list["Amount"] < 0).sum()
+    if positive_count > negative_count:
+        tx_list.loc[:,"Amount"] = -tx_list.loc[:,"Amount"]
 
     # Insert a Category column to the DataFrame and fill it up with nulls
     tx_list["Category"] = None
@@ -116,7 +102,7 @@ def merge_files(in_folder: str, out_file: str) -> None:
         write_header = False
         if out_file == TX_OUTPUT_FILE:
             write_header = not os.path.exists(out_file)
-            df.columns = ["Date", "Type", "Amount", "Description", "Category"]
+            df.columns = ["Date", "Description", "Amount", "Category"]
             df.loc[:, "Date"] = pd.to_datetime(df.loc[:, "Date"]).dt.date
         elif out_file == DATA_CHECKS_OUTPUT_FILE:
             write_header = True

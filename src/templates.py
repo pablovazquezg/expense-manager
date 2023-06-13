@@ -1,9 +1,12 @@
-EXPENSE_CAT_TEMPLATE = """Create a list of [description, category] lists, where in each list item:
+EXPENSE_CAT_TEMPLATE = """
+    <context>
+    You are an advanced data analysis model. Your task is to create a list of [description, category] lists, where in each list item:
     - the description is exactly the same you receive as input
     - the category most appropriate based on that description (see instructions below)
-
-    [LIST OF CATEGORIES]
-    The following list contains the categories  and keywords you often see in transaction descriptions:
+    </context>
+    
+    <categories>
+    The following list contains the categories and keywords you often see in transaction descriptions:
     -ATM: atm, cash, withdraw
     -Auto: auto body
     -Bars: bar, pubs, irish, brewery
@@ -37,52 +40,66 @@ EXPENSE_CAT_TEMPLATE = """Create a list of [description, category] lists, where 
     -Transfer: payment from
     -Utilities: electricity, water, gas, phone, internet
     -Other: use this when very uncertain about the category
+    </categories>
 
-
-    [FORMATTING INSTRUCTIONS]
+    <output_formatting_instructions>
     Your output should be a valid list of lists (e.g. [[description1, category1], [description2, category2], ...]] parse-able by the command ast.literal_eval(output)
     Don't include any kind of commentary, return carriages, spaces or other characters in the output
     Fill all categories; if you don't know which one to choose, choose 'Other'
-
+    </output_formatting_instructions>
     
     
-    [LIST OF TRANSACTIONS]
-    {tx_descriptions}"""
+    <financial_transactions>
+    {input_data}
+    </financial_transactions>"""
 
-RELEVANT_COLS_TEMPLATE = """You are an advanced AI model. Your task is to follow the two \
-following steps, and return a correctly formatted output (see instructions below).
-[STEP 1]
-Analyze this dataset and identify the four columns that contain the following key information:
+RELEVANT_COLS_TEMPLATE = """
+    <context>
+    You are an advanced AI data analysis model. Your task is to analyze the list of \
+    column names you are receiving as an input and follow a list of instructions to \
+    to produce a correctly formatted output.
+    </context>
 
-'date': This columns is often labeled 'Date' or 'Transaction Date'. If there are multiple date columns, choose only the most appropriate.
-'description': This column contains details about the transaction, such as 'groceries' or 'travel'. It does not refer to the transaction type. The column is often labeled as 'Description' or 'Transaction Description'.
-'amount': This column reflects the amount involved in the transaction. Debits usually appear as negative numbers and credits as positive. The column is often labeled 'Amount' or 'Transaction Amount'.
-'type': This column indicates the type of transaction, such as 'debit', 'credit', etc. In some instances, it may contain only the initial letter of the type, like 'D' for debit or 'C' for credit. \
-If you're uncertain about this column, do not include it in your output.
+    <column_names>
+    {input_data}
+    <column_names>
 
-[STEP 2: Create your answer]
-Return a python list containing the names of the three or four columns you identified in STEP 1. \
-
-[OUTPUT FORMATTING INSTRUCTIONS]
-Ensure every name in your output list is in fact a column name in the data. \
-The list must be valid Python syntax and should be parse-able using the command ast.literal_eval(your response). \
-Refrain from including any additional commentary or information in your output."""
-
-FIX_OUTPUT_TEMPLATE = """The output you provided is not valid. Please follow this instructions to fix it:
-    - Your output should be a valid list of lists (e.g. [[(]description1, category1], [description2, category2), ...]] parse-able by the command ast.literal_eval(output)
-    - Don't include any kind of commentary or other characters in the output
-    - If you see a valid list of lists in these results, return it and discard other elements"""
-
-CHECK_SPLIT_CREDITS_DEBITS = """You are an advanced AI model and you are tasked with following three steps. \
-    Take your time and think step by step: \
-    [STEP 1]
-    Analyze this list of financial transactions, and determine if the transaction amounts are \
-    under one column, or if they are split between two columns (one for credits and one for debits).
-
-    [STEP 2]
-    If the amounts are split between two columns, return a python list that contains the names of those two columns. On the \
-    contrary, if the amounts are under one column, return an empty python list (i.e. []). \
+    <instructions>
+    Look at the input list and create a python list with the names that better match the following:
+    1. date: the date of the transaction; if there are multiple columns with dates, choose just one
+    2. description: information about the transaction (e.g. the name of the store)
+    3. amount: the amount of the transaction; make sure you choose the 'amount' column and not the 'balance' column
+    </instructions>
     
-    [OUTPUT FORMATTING INSTRUCTIONS]
-    Your output must be a valid Python list and parse-able using the command ast.literal_eval(your response). \
-    Refrain from including any additional commentary or information in your output."""
+
+    <output_formatting_instructions>
+    Your output must be a valid Python list and parse-able using the command ast.literal_eval(your response).
+    All the items in the list must match exactly the names of the columns in the input data.
+    Refrain from including any additional commentary or information in your output.
+    Examples: ['date', 'description', 'amount']
+    </output_formatting_instructions>
+    """
+
+CHECK_SPLIT_CREDITS_DEBITS = """
+    <context>
+    You are an advanced AI data analysis model. Your task is to analyze different lists of financial \
+    transactions and follow a list of instructions to produce a correctly formatted output.
+    </context>
+
+    <financial_transactions>
+    {input_data}
+    </financial_transactions>
+
+    <instructions>
+    If there are two different columns for credits and debits, return a python list containing the names \
+    of the columns containing the credits and debits, respectively (e.g. ['credit', 'debit']).
+    If, on the other hand, there is only one column for both credits and debits, return an empty python list.
+    </instructions>
+    
+
+    <output_formatting_instructions>
+    Your output must be a valid Python list and parse-able using the command ast.literal_eval(your response).
+    Refrain from including any additional commentary or information in your output.
+    Examples: ['credit', 'debit'], []
+    </output_formatting_instructions>
+    """

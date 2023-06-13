@@ -58,8 +58,7 @@ async def categorize_tx_batch(
         List[List]: A list of lists containing the categorized transaction descriptions.
     """
     # Trim and remove newlines from tx_descriptions
-    tx_descriptions = tx_descriptions.strip()
-    raw_result = chain.run(tx_descriptions=tx_descriptions)  # result is a string
+    raw_result = chain.run(input_data=tx_descriptions.strip())  # result is a string
     try:
         # Try to parse raw results; manage exceptions if they occur
         json_result = json.dumps(
