@@ -22,7 +22,12 @@ from src.config import (
     DATA_CHECKS_OUTPUT_FILE
 )
 
-
+#TODO: Clean all TODOs in this file
+#TODO: Add docstrings to all functions
+#TODO: Add type hints to all functions
+#TODO: Add tracing
+#TODO: Create script to empty folders (all, or specific ones)
+#TODO: Git not to upload data files
 # read file and process it (e.g. categorize transactions)
 async def process_file(file_path: str) -> None:
     # Read file (includes data cleaning and standardization)
@@ -97,18 +102,22 @@ def merge_files(in_folder: str, out_file: str) -> None:
             [pd.read_csv(file, header=None) for file in files], ignore_index=True
         )
 
-        # TODO: Name columns
-        # Append results to output file
-        write_header = False
+        # Write contents to output file (based on file type)
         if out_file == TX_OUTPUT_FILE:
-            write_header = not os.path.exists(out_file)
             df.columns = ["Date", "Description", "Amount", "Category"]
             df.loc[:, "Date"] = pd.to_datetime(df.loc[:, "Date"]).dt.date
+            df.to_csv(out_file, mode="a", index=False, header=not os.path.exists(out_file))
         elif out_file == DATA_CHECKS_OUTPUT_FILE:
-            write_header = True
             df.columns = ["File", "Amount In", "Amount Out", "Records In", "Records Out"]
-
-        df.to_csv(out_file, mode="a", index=False, header=write_header)
+            df.to_csv(out_file, mode="a", index=False, header=True)
+        elif out_file == REF_OUTPUT_FILE:     
+            df.columns = ["Description", "Category"]       
+            # Add master file to interim results
+            previous_master = pd.read_csv(REF_OUTPUT_FILE, names=["Description", "Category"], header=0)
+            df = df.append(previous_master, ignore_index=True)         
+            
+            # Drop duplicates, sort, and write to output file            
+            df.drop_duplicates().sort_values(by=["Description"]).to_csv(out_file, mode="w", index=False, header=True)
 
 
 def archive_files(in_folder: str, out_folder: str) -> None:
