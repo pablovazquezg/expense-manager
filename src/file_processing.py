@@ -10,7 +10,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 
 import src.templates as templates
-from src.inspect_file import inspect_file
+from src.inspect_file import inspect_data
 from src.categorize_tx_list import categorize_tx_list
 
 from src.config import (
@@ -55,9 +55,7 @@ async def process_file(file_path: str) -> None:
 def read_file(file_path: str) -> pd.DataFrame:
     
     tx_list = pd.read_csv(file_path)
-    file_sample = tx_list.head(6).to_string(index=False)
-
-    split_credits_debits = inspect_file(file_sample, templates.CHECK_SPLIT_CREDITS_DEBITS)
+    split_credits_debits = inspect_data(tx_list, templates.CHECK_SPLIT_CREDITS_DEBITS)
 
     # If C/D on different columns, consolidate (melt) them under a 'Type' column; keep  amounts in new column
     if split_credits_debits:
@@ -68,7 +66,7 @@ def read_file(file_path: str) -> pd.DataFrame:
         tx_list.dropna(subset=['Amount'], inplace=True)
 
     # Locate relevant columns (Date, Description, Amount, Type)
-    relevant_cols = inspect_file(file_sample, templates.RELEVANT_COLS_TEMPLATE)
+    relevant_cols = inspect_data(tx_list, templates.RELEVANT_COLS_TEMPLATE)
 
     # Create array of desired column names
     standard_cols = ['Date', 'Description', 'Amount']

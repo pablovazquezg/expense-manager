@@ -49,43 +49,40 @@ EXPENSE_CAT_TEMPLATE = """Create a list of [description, category] lists, where 
     [LIST OF TRANSACTIONS]
     {tx_descriptions}"""
 
-RELEVANT_COLS_TEMPLATE = """Execute the following three steps:
-    [STEP 1: Analyze the list of transactions below and find the columns that contain the following information]
-    - date: typically the column labeled 'Date' or 'Transaction Date'
-    - description: select the column that contains the transaction description (groceries, travel, etc.), not the transaction type (debit, credit, etc.). This column is sometimes labeled 'Description' or 'Transaction Description'.
-    - amount: this is the amount of the transaction; often it is a negative number for debits and a positive number for credits. This column is sometimes labeled 'Amount' or 'Transaction Amount'.
-    - type: this is the type of transaction (debit, credit, etc.); it sometimes contains only the first letter of the type (D, C, etc.). If you are not sure, then don't include this column (e.g. the output should have only three items)
-    
-    [LIST OF TRANSACTIONS]
-    {tx_list}
-    
-    [STEP 2: Verify your answer column by column and ensure they are correct]
+RELEVANT_COLS_TEMPLATE = """You are an advanced AI model. Your task is to follow the two \
+following steps, and return a correctly formatted output (see instructions below).
+[STEP 1]
+Analyze this dataset and identify the four columns that contain the following key information:
 
-    [STEP 3: Format your answer]
-    Give me an array containing only the names of the columns. Your output should consist of one valid python list parse-able by the command ast.literal_eval(your response). Don't include any commentary or anything other info in the output.
-     
-    [VALID PYTHON ARRAY EXAMPLES]
-    ['Date', 'Description', 'Amount'], ['date', 'description', 'amount', 'type']"""
+'date': This columns is often labeled 'Date' or 'Transaction Date'. If there are multiple date columns, choose only the most appropriate.
+'description': This column contains details about the transaction, such as 'groceries' or 'travel'. It does not refer to the transaction type. The column is often labeled as 'Description' or 'Transaction Description'.
+'amount': This column reflects the amount involved in the transaction. Debits usually appear as negative numbers and credits as positive. The column is often labeled 'Amount' or 'Transaction Amount'.
+'type': This column indicates the type of transaction, such as 'debit', 'credit', etc. In some instances, it may contain only the initial letter of the type, like 'D' for debit or 'C' for credit. \
+If you're uncertain about this column, do not include it in your output.
+
+[STEP 2: Create your answer]
+Return a python list containing the names of the three or four columns you identified in STEP 1. \
+
+[OUTPUT FORMATTING INSTRUCTIONS]
+Ensure every name in your output list is in fact a column name in the data. \
+The list must be valid Python syntax and should be parse-able using the command ast.literal_eval(your response). \
+Refrain from including any additional commentary or information in your output."""
 
 FIX_OUTPUT_TEMPLATE = """The output you provided is not valid. Please follow this instructions to fix it:
     - Your output should be a valid list of lists (e.g. [[(]description1, category1], [description2, category2), ...]] parse-able by the command ast.literal_eval(output)
     - Don't include any kind of commentary or other characters in the output
     - If you see a valid list of lists in these results, return it and discard other elements"""
 
-CHECK_SPLIT_CREDITS_DEBITS = """There are two types of files:
-    - Files where the transaction amount is in a single column (e.g. 'Amount')
-    - Files where the transaction amounts are split in two columns (e.g. 'Debit' and 'Credit')
+CHECK_SPLIT_CREDITS_DEBITS = """You are an advanced AI model and you are tasked with following three steps. \
+    Take your time and think step by step: \
+    [STEP 1]
+    Analyze this list of financial transactions, and determine if the transaction amounts are \
+    under one column, or if they are split between two columns (one for credits and one for debits).
 
-    You are a senior financial analyst. Your job is to look at the list of transactions below, \
-    determine which type of file you have, and return a python list following the instructions below:
-    - If the amount is in a single column, return an empty list (e.g. [])
-    - If the amount is split in two columns, return a list with the names of those two columns that contain transaction amounts (e.g. ['Debit', 'Credit'])
+    [STEP 2]
+    If the amounts are split between two columns, return a python list that contains the names of those two columns. On the \
+    contrary, if the amounts are under one column, return an empty python list (i.e. []). \
     
-    [LIST OF FINANCIAL TRANSACTIONS]
-    {tx_list}
-    
-    [FORMATTING INSTRUCTIONS]
-    - Your output should be a valid python list parse-able by the command ast.literal_eval(output)
-    - Don't include any kind of commentary or other characters in the output
-    - If your output contains any column names, it's important to ensure those columns exist in the input data
-    - Your output should be either an empty list of a list with two strings. Examples: [], ['Debit', 'Credit']"""
+    [OUTPUT FORMATTING INSTRUCTIONS]
+    Your output must be a valid Python list and parse-able using the command ast.literal_eval(your response). \
+    Refrain from including any additional commentary or information in your output."""

@@ -31,5 +31,13 @@
             "console": "integratedTerminal",
             "justMyCode": true
         }
+        {
+            "name": "Detailed Python: main.py",
+            "type": "python",
+            "request": "launch",
+            "program": "/workspaces/expense_manager/main.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
     ]
 }
