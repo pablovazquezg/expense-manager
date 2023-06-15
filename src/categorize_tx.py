@@ -17,11 +17,12 @@ from langchain.chains import LLMChain
 from langchain.output_parsers import PydanticOutputParser, OutputFixingParser
 from langchain.prompts import PromptTemplate
 import src.templates as templates
-from src.custom_classes import CatDesc
+from src.custom_classes import Desc_Categ_Pair
+from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER
 
 
 def fuzzy_tx_categorization(
-    row: pd.Series,
+    description: str,
     descriptions: np.ndarray,
     description_category_pairs: pd.DataFrame,
     threshold: int = 90,
@@ -29,7 +30,7 @@ def fuzzy_tx_categorization(
     """Find a fuzzy match for the transaction description and return its category.
     
     Args:
-        row (pd.Series): The transaction record.
+        description (str): The transaction description to categorize.
         descriptions (np.ndarray): The array of descriptions to match against.
         description_category_pairs (pd.DataFrame): DataFrame containing description-category pairs.
         threshold (int): The matching score threshold.
@@ -37,9 +38,16 @@ def fuzzy_tx_categorization(
     Returns:
         str or None: The category of the matched description, or None if no match found.
     """
-    match_results = process.extractOne(row["Description"], descriptions, score_cutoff=threshold)
 
-    return description_category_pairs.at[match_results[2], "Category"] if match_results else None
+    # Fuzzy-match this description against the reference descriptions
+    match_results = process.extractOne(description, descriptions, score_cutoff=threshold)
+
+    # If a match is found, return the category of the matched description
+    if match_results:
+        return description_category_pairs.at[match_results[2], "Category"]
+    
+    return None
+
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -48,8 +56,8 @@ async def categorize_tx_batch(
     tx_descriptions: str,
     parser: OutputFixingParser,
     prompt: PromptTemplate,
-) -> List[Tuple[str, str]]:
-    """Categorize a batch of transactions using a LLMChain.
+) -> List[Tuple]:
+    """Categorize a batch of transactions using a LLM
     
     Args:
         chain (LLMChain): The LLMChain object to use for running the chain.
@@ -58,19 +66,20 @@ async def categorize_tx_batch(
         prompt (PromptTemplate): The prompt to use for running the LLM chain.
 
     Returns:
-        List[Tuple[str, str]]: A list of tuples containing the categorized transaction descriptions.
+        List[Tuple]: A list of tuples containing the categorized transaction descriptions.
     """
+
     # Trim and remove newlines from tx_descriptions
-    raw_result = chain.run(input_data=tx_descriptions.strip())  # result is a string
+    raw_result = chain.run(input_data=tx_descriptions.strip())
+    
     try:
         # Try to parse raw results; manage exceptions if they occur
         json_result = json.dumps({"output": ast.literal_eval(raw_result)})
         parsed_result = parser.parse(json_result)
     except ValidationError as validation_error:
         print(f"Validation Error: {validation_error}\nRaw Result: {raw_result}\n")
-        parsed_result = CatDesc(output=[["LLM ERROR DESC", "LLM ERROR CAT"]])
-    return parsed_result.output  # type: ignore
-
+        parsed_result = Desc_Categ_Pair(output=[("LLM ERROR DESC", "LLM ERROR CAT")])
+    return parsed_result.output
 
 async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
     """Categorize a list of transactions using a language model.
@@ -81,9 +90,10 @@ async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The original dataframe with an additional column for the category.
     """
+    
     # Create base llm model and validation parser
     llm = ChatOpenAI(temperature=0, client=Any)
-    fixer_parser = OutputFixingParser.from_llm(parser=PydanticOutputParser(pydantic_object=CatDesc), llm=llm)
+    fixer_parser = OutputFixingParser.from_llm(parser=PydanticOutputParser(pydantic_object=Desc_Categ_Pair), llm=llm)
 
     # Create categorization prompt and chain
     prompt = PromptTemplate.from_template(template=templates.EXPENSE_CAT_TEMPLATE)    
@@ -96,7 +106,7 @@ async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
 
     results_list = await asyncio.gather(*tasks)
 
-    # unpack the list of results; each result is a CatDesc object which contains a list of tuples (description-category pairs)
+    # unpack the list of results; each result being a list of tuples (description-category pairs)
     categorized_descriptions = pd.DataFrame(
         [desc_cat_pair for result in results_list for desc_cat_pair in result],
         columns=["Description", "Category"],

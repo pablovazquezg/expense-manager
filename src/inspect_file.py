@@ -1,5 +1,8 @@
-import pandas as pd
+# Standard library imports
 from typing import List
+
+# Third-party library imports
+import pandas as pd
 
 def find_cr_db_columns(data_sample: pd.DataFrame) -> List[int]:
     """
@@ -11,6 +14,7 @@ def find_cr_db_columns(data_sample: pd.DataFrame) -> List[int]:
     Returns:
         List[int]: Positions of the credit and debit columns (or an empty list if not found).
     """
+
     # Convert the column names of the DataFrame to lowercase
     columns = [col.lower() for col in data_sample.columns]
 
@@ -38,6 +42,7 @@ def find_relevant_columns(data_sample: pd.DataFrame) -> List[int]:
     Returns:
         List[int]: Positions of the relevant columns.
     """
+    
     # Convert the column names of the DataFrame to lowercase
     columns = [col.lower() for col in data_sample.columns]
 
@@ -53,5 +58,9 @@ def find_relevant_columns(data_sample: pd.DataFrame) -> List[int]:
     description_position = next((i for i, col in enumerate(columns) if any(keyword in col for keyword in description_keywords) and not any(keyword in col for keyword in date_keywords)), None)
     amount_position = next((i for i, col in enumerate(columns) if any(keyword in col for keyword in amount_keywords) and not any(keyword in col for keyword in date_keywords)), None)
 
+    # Raise exception if either field is not found; they are all necessary
+    if date_position is None or description_position is None or amount_position is None:
+        raise Exception('Could not find all relevant columns (date, description, amount)')
+    
     # Return the positions of the found columns
     return [date_position, description_position, amount_position]

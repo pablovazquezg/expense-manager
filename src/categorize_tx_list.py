@@ -10,47 +10,48 @@ from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER
 from src.categorize_tx import llm_tx_categorization, fuzzy_tx_categorization
 
 
-async def categorize_tx_list(tx_list: pd.DataFrame, n_cores: int = 6) -> pd.DataFrame:
+async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
     """
     Asynchronously categorizes a list of transactions.
     
-    If a reference output file exists, the function will use fuzzy matching
-    to find similar descriptions and assign the category. Remaining uncategorized 
-    transactions are passed to a machine learning model for categorization.
+    New transaction descriptions are looked up in the reference file (combination 
+    of user input and previous executions) to minimize the number of API calls. Any
+    uncategorized transactions are sent to the llm, and new description-category pairs
+    are added to the reference file.
 
     Parameters:
     tx_list (pd.DataFrame): The list of transactions to categorize.
-    n_cores (int): The number of cores to use for parallel processing. Default is 6.
 
     Returns:
     pd.DataFrame: The original dataframe with an additional column for the category.
     """
 
     if os.path.exists(REF_OUTPUT_FILE):
-        # Read the historical description-category pairs
+        # Read description-category pairs reference file
         description_category_pairs = pd.read_csv(
             REF_OUTPUT_FILE, header=None, names=["Description", "Category"]
         )
+
+        # Extract only descriptions for faster matching
         descriptions = description_category_pairs["Description"].values
 
         # Use fuzzy matching to find similar descriptions and assign the category
-        tx_list["Category"] = tx_list.apply(
+        tx_list["Category"] = tx_list["Description"].apply(
             fuzzy_tx_categorization,
             args=(
                 descriptions,
                 description_category_pairs,
             ),
-            axis=1,
         )
 
-    # Look for uncategorized transactions; if there are any, deduplicate and sort by description
+    # Look for uncategorized transactions; deduplicate and sort by description
     uncategorized_descriptions = (
         tx_list[tx_list["Category"].isnull()]
         .drop_duplicates(subset=["Description"])
         .sort_values(by=["Description"])
     )
 
-    # If there are uncategorized transactions, ask the llm to categorize the remaining descriptions
+    # Ask llm to categorize remaining descriptions
     if len(uncategorized_descriptions) > 0:
         categorized_descriptions = await llm_tx_categorization(
             uncategorized_descriptions[["Description", "Category"]]
@@ -64,14 +65,14 @@ async def categorize_tx_list(tx_list: pd.DataFrame, n_cores: int = 6) -> pd.Data
         file_path = os.path.join(REF_STAGE_FOLDER, file_name)
         categorized_descriptions.to_csv(file_path, index=False, header=False)
 
-        # Add the new description-category pairs to the tx_list
+        # Add new description-category pairs to the tx_list
         tx_list["Category"] = tx_list["Category"].fillna(
             tx_list["Description"].map(
                 categorized_descriptions.set_index("Description")["Category"]
             )
         )
         
-        # Fill the remaining NaN values in "Category" with 'Other'
+        # Fill remaining NaN values in "Category" with 'Other'
         tx_list["Category"] = tx_list["Category"].fillna('Other')
 
     return tx_list
