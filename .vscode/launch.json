@@ -29,8 +29,11 @@
             "request": "launch",
             "program": "/workspaces/expense_manager/main.py",
             "console": "integratedTerminal",
+            "args": [
+                "-Xfrozen_modules=off"
+            ],
             "justMyCode": true
-        }
+        },
         {
             "name": "Detailed Python: main.py",
             "type": "python",

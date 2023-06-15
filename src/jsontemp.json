@@ -1,0 +1,43 @@
+[
+    {
+        "name": "YouTubeSearch",
+        "description": "search for youtube videos associated with a person. the input to this tool should be a comma separated list, the first part contains a person name and the second a number that is the maximum number of video results to return aka num_results. the second part is optional",
+        "parameters": {
+            "properties": {
+                "__arg1": {
+                    "title": "__arg1",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "__arg1"
+            ],
+            "type": "object"
+        }
+    },
+    {
+        "name": "move_file",
+        "description": "Move or rename a file from one location to another",
+        "parameters": {
+            "title": "FileMoveInput",
+            "description": "Input for MoveFileTool.",
+            "type": "object",
+            "properties": {
+                "source_path": {
+                    "title": "Source Path",
+                    "description": "Path of the file to move",
+                    "type": "string"
+                },
+                "destination_path": {
+                    "title": "Destination Path",
+                    "description": "New path for the moved file",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "source_path",
+                "destination_path"
+            ]
+        }
+    }
+]

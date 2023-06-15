@@ -11,3 +11,4 @@ tenacity
 rapidfuzz
 aiomultiprocess
 pydantic
+dateparser
