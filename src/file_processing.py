@@ -1,27 +1,21 @@
+# Standard library imports
 import os
 import glob
 import shutil
 import asyncio
-import dateparser
-import src.templates as templates
-import pandas as pd
 from datetime import datetime
-from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
 
-import src.templates as templates
+# Third-party library imports
+import pandas as pd
+from dateparser import parse
+
+# Local application/library specific imports
+from src.templates import *
 from src.inspect_file import find_relevant_columns, find_cr_db_columns
 from src.categorize_tx_list import categorize_tx_list
 
-from src.config import (
-    TX_STAGE_FOLDER,
-    TX_OUTPUT_FILE,
-    REF_STAGE_FOLDER,
-    REF_OUTPUT_FILE,
-    DATA_CHECKS_STAGE_FOLDER,
-    DATA_CHECKS_OUTPUT_FILE
-)
+# Local application/library specific imports
+from src.config import DataFolders
 
 #TODO: Clean all TODOs in this file
 #TODO: Add docstrings to all functions
@@ -30,8 +24,20 @@ from src.config import (
 #TODO: Create script to empty folders (all, or specific ones)
 #TODO: Git not to upload data files
 #TODO: Use concat instead of append for df
-# read file and process it (e.g. categorize transactions)
+#TODO: Dates and amount signs, divisa management
+#TODO: Remove all print statements and amounts
+
+# Read file and process it (e.g. categorize transactions)
 async def process_file(input_file_path: str) -> None:
+    """
+    Process the input file by reading, cleaning, standardizing, and categorizing the transactions.
+
+    Args:
+        input_file_path (str): Path to the input file.
+
+    Returns:
+        None
+    """
     # Read file (includes data cleaning and standardization)
     tx_list = read_prep_data(input_file_path)
 
@@ -47,24 +53,32 @@ async def process_file(input_file_path: str) -> None:
     total_count_out = len(categorized_tx_list.index)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     new_file_name = f"{timestamp}_{os.path.basename(input_file_path)}"
-    new_file_path = os.path.join(DATA_CHECKS_STAGE_FOLDER, new_file_name)
+    new_file_path = os.path.join(DataFolders.DATA_CHECKS_STAGE_FOLDER, new_file_name)
     with open(new_file_path, "w", encoding="utf-8") as file:
         file.write(f"{new_file_name}, {total_amount_in}, {total_amount_out}, {total_count_in}, {total_count_out}\n\n")
-    
 
     # Save file to interim folder; all files will be merged at the end (see merge_interim_results() below)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     new_file_name = f"{timestamp}_{os.path.basename(input_file_path)}"
-    new_file_path = os.path.join(TX_STAGE_FOLDER, new_file_name)
+    new_file_path = os.path.join(DataFolders.TX_STAGE_FOLDER, new_file_name)
     categorized_tx_list.to_csv(new_file_path, index=False, header=False)
 
 
 def read_prep_data(file_path: str) -> pd.DataFrame:
+    """
+    Read and prepare the data from the input file.
+
+    Args:
+        file_path (str): Path to the input file.
+
+    Returns:
+        pd.DataFrame: Prepared transaction data.
+    """
     tx_list = pd.read_csv(file_path, index_col=False)
     data_sample = tx_list.head(10)
     split_credits_debits = find_cr_db_columns(data_sample)
 
-    # If C/D on different columns, consolidate (melt) them under a 'Type' column; keep  amounts in new column
+    # If C/D on different columns, consolidate (melt) them under a 'Type' column; keep amounts in new column
     if split_credits_debits:
         all_columns = tx_list.columns.tolist()
 
@@ -82,16 +96,16 @@ def read_prep_data(file_path: str) -> pd.DataFrame:
         tx_list.dropna(subset=['Amount'], inplace=True)
         # Refresh the data sample since the structure has changed
         data_sample = tx_list.head(10)
-    
+
     # Locate relevant columns (Date, Description, Amount, Type)
     relevant_cols = find_relevant_columns(data_sample)
 
     # Keep relevant columns and rename them to standard names (across all files to be processed)
-    tx_list = tx_list.iloc[:,relevant_cols]
+    tx_list = tx_list.iloc[:, relevant_cols]
     tx_list.columns = ['Date', 'Description', 'Amount']
 
     tx_list['Amount'] = standardize_amounts(tx_list['Amount'])
-    
+
     # Insert a Category column to the DataFrame and fill it up with nulls
     tx_list["Category"] = None
 
@@ -99,6 +113,15 @@ def read_prep_data(file_path: str) -> pd.DataFrame:
 
 
 def standardize_amounts(amounts: pd.Series) -> pd.Series:
+    """
+    Standardize the amounts by removing the thousand separator and adjusting the sign for credits and debits.
+
+    Args:
+        amounts (pd.Series): Amounts to be standardized.
+
+    Returns:
+        pd.Series: Standardized amounts.
+    """
     # Sample a single entry to determine amount format (US vs European)
     sample_entry = amounts.iloc[0]
 
@@ -113,7 +136,7 @@ def standardize_amounts(amounts: pd.Series) -> pd.Series:
     else:
         # Remove the thousand separator
         amounts = amounts.astype(str).str.replace(',', '', regex=False)
-    
+
     amounts = amounts.astype(float)
     # Standardize Credits and Debits signs (assumes more Debits than Credits)
     positive_count = (amounts > 0).sum()
@@ -123,7 +146,18 @@ def standardize_amounts(amounts: pd.Series) -> pd.Series:
 
     return amounts
 
+
 def merge_files(in_folder: str, out_file: str) -> None:
+    """
+    Merge all interim results in the input folder and write the merged results to the output file.
+
+    Args:
+        in_folder (str): Path to the input folder containing interim results.
+        out_file (str): Path to the output file.
+
+    Returns:
+        None
+    """
     # Get a list of all CSV files in the input folder
     files = glob.glob(os.path.join(in_folder, "*.CSV")) + glob.glob(os.path.join(in_folder, "*.csv"))
 
@@ -133,24 +167,34 @@ def merge_files(in_folder: str, out_file: str) -> None:
         )
 
         # Write contents to output file (based on file type)
-        if out_file == TX_OUTPUT_FILE:
+        if out_file == DataFolders.TX_OUTPUT_FILE:
             df.columns = ["Date", "Description", "Amount", "Category"]
-            df.loc[:, 'Date'] = df['Date'].apply(lambda x: dateparser.parse(x).strftime('%Y/%m/%d'))
+            df.loc[:, 'Date'] = df['Date'].apply(lambda x: parse(x).strftime('%Y/%m/%d'))
             df.to_csv(out_file, mode="a", index=False, header=not os.path.exists(out_file))
-        elif out_file == DATA_CHECKS_OUTPUT_FILE:
+        elif out_file == DataFolders.DATA_CHECKS_OUTPUT_FILE:
             df.columns = ["File", "Amount In", "Amount Out", "Records In", "Records Out"]
             df.to_csv(out_file, mode="a", index=False, header=True)
-        elif out_file == REF_OUTPUT_FILE:     
-            df.columns = ["Description", "Category"]       
+        elif out_file == DataFolders.REF_OUTPUT_FILE:
+            df.columns = ["Description", "Category"]
             # Add master file to interim results
-            previous_master = pd.read_csv(REF_OUTPUT_FILE, names=["Description", "Category"], header=0)
-            df = df.append(previous_master, ignore_index=True)         
-            
-            # Drop duplicates, sort, and write to output file            
+            previous_master = pd.read_csv(DataFolders.REF_OUTPUT_FILE, names=["Description", "Category"], header=0)
+            df = df.append(previous_master, ignore_index=True)
+
+            # Drop duplicates, sort, and write to output file
             df.drop_duplicates().sort_values(by=["Description"]).to_csv(out_file, mode="w", index=False, header=True)
 
 
 def archive_files(in_folder: str, out_folder: str) -> None:
+    """
+    Archive all files in the input folder by moving them to the output folder.
+
+    Args:
+        in_folder (str): Path to the input folder containing the files to be archived.
+        out_folder (str): Path to the output folder where the files will be archived.
+
+    Returns:
+        None
+    """
     # Get a list of all CSV files in the input folder
     files = glob.glob(os.path.join(in_folder, "*.CSV")) + glob.glob(os.path.join(in_folder, "*.csv"))
 

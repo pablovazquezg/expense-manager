@@ -1,23 +1,23 @@
-import csv
+# Standard library imports
 import ast
 import json
-import asyncio
-import timeit
-from io import StringIO
-from typing import Any, List, Tuple
-from tenacity import retry, wait_random_exponential, stop_after_attempt
-import pandas as pd
-import numpy as np
-from rapidfuzz import process
-from src.config import TX_OUTPUT_FILE
-import src.templates as templates
-from src.custom_classes import CatDesc
+from typing import Any, List, Tuple, Optional
 
-from langchain.prompts import PromptTemplate
+# Third-party library imports
+import asyncio
+import numpy as np
+import pandas as pd
+from pydantic import ValidationError
+from rapidfuzz import process
+from tenacity import retry, wait_random_exponential, stop_after_attempt
+
+# Local application/library specific imports
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.output_parsers import PydanticOutputParser, OutputFixingParser
-from pydantic import ValidationError
+from langchain.prompts import PromptTemplate
+import src.templates as templates
+from src.custom_classes import CatDesc
 
 
 def fuzzy_tx_categorization(
@@ -25,17 +25,21 @@ def fuzzy_tx_categorization(
     descriptions: np.ndarray,
     description_category_pairs: pd.DataFrame,
     threshold: int = 90,
-) -> Any:  # str or None
-    match_results = process.extractOne(
-        row["Description"], descriptions, score_cutoff=threshold
-    )
+) -> Optional[str]:
+    """Find a fuzzy match for the transaction description and return its category.
+    
+    Args:
+        row (pd.Series): The transaction record.
+        descriptions (np.ndarray): The array of descriptions to match against.
+        description_category_pairs (pd.DataFrame): DataFrame containing description-category pairs.
+        threshold (int): The matching score threshold.
 
-    if match_results:
-        return description_category_pairs.at[
-            match_results[2], "Category"
-        ]  # match_results[2] is the index of the matched description
-    else:
-        return None
+    Returns:
+        str or None: The category of the matched description, or None if no match found.
+    """
+    match_results = process.extractOne(row["Description"], descriptions, score_cutoff=threshold)
+
+    return description_category_pairs.at[match_results[2], "Category"] if match_results else None
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -44,55 +48,51 @@ async def categorize_tx_batch(
     tx_descriptions: str,
     parser: OutputFixingParser,
     prompt: PromptTemplate,
-) -> List[List]:
-    """
-    Run the LLM chain asynchronously on a batch of transaction descriptions.
-
+) -> List[Tuple[str, str]]:
+    """Categorize a batch of transactions using a LLMChain.
+    
     Args:
         chain (LLMChain): The LLMChain object to use for running the chain.
         tx_descriptions (str): A string containing the transaction descriptions to categorize.
-        parser (PydanticOutputParser): The parser to use for parsing the LLM output.
+        parser (OutputFixingParser): The parser to use for parsing the LLM output.
         prompt (PromptTemplate): The prompt to use for running the LLM chain.
 
     Returns:
-        List[List]: A list of lists containing the categorized transaction descriptions.
+        List[Tuple[str, str]]: A list of tuples containing the categorized transaction descriptions.
     """
     # Trim and remove newlines from tx_descriptions
     raw_result = chain.run(input_data=tx_descriptions.strip())  # result is a string
     try:
         # Try to parse raw results; manage exceptions if they occur
-        json_result = json.dumps(
-            {"output": ast.literal_eval(raw_result)}
-        )
+        json_result = json.dumps({"output": ast.literal_eval(raw_result)})
         parsed_result = parser.parse(json_result)
     except ValidationError as validation_error:
-        print(
-            f"Validation Error: {validation_error}\nRaw Result: {raw_result}\n"
-        )
+        print(f"Validation Error: {validation_error}\nRaw Result: {raw_result}\n")
         parsed_result = CatDesc(output=[["LLM ERROR DESC", "LLM ERROR CAT"]])
     return parsed_result.output  # type: ignore
 
 
 async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
+    """Categorize a list of transactions using a language model.
+    
+    Args:
+        tx_list (pd.DataFrame): The list of transactions to categorize.
+
+    Returns:
+        pd.DataFrame: The original dataframe with an additional column for the category.
+    """
     # Create base llm model and validation parser
     llm = ChatOpenAI(temperature=0, client=Any)
-    fixer_parser = OutputFixingParser.from_llm(
-        parser=PydanticOutputParser(pydantic_object=CatDesc),
-        llm=llm
-    )
+    fixer_parser = OutputFixingParser.from_llm(parser=PydanticOutputParser(pydantic_object=CatDesc), llm=llm)
 
     # Create categorization prompt and chain
     prompt = PromptTemplate.from_template(template=templates.EXPENSE_CAT_TEMPLATE)    
     chain = LLMChain(llm=llm, prompt=prompt)
 
     # Iterate over the DataFrame in batches of 10 rows
-    tasks = []
     chunksize = 10
-    for i in range(0, tx_list.shape[0], chunksize):
-        chunk = tx_list.iloc[i : i + chunksize]
-        tx_descriptions = "\n".join(chunk["Description"])
-        task = categorize_tx_batch(chain=chain, tx_descriptions=tx_descriptions, parser=fixer_parser, prompt=prompt)  # type: ignore
-        tasks.append(task)
+    tasks = [categorize_tx_batch(chain=chain, tx_descriptions="\n".join(chunk["Description"]), parser=fixer_parser, prompt=prompt) 
+        for chunk in np.array_split(tx_list, tx_list.shape[0]//chunksize + 1)]
 
     results_list = await asyncio.gather(*tasks)
 
