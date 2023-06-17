@@ -39,29 +39,29 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     columns = tx_list.columns
 
     # Find the first column that contains any date keyword (first date is often the transaction date)
-    date_pos = next((col for col in columns if any(alias in col for alias in DATE_VARIATIONS)), None)
+    date_col = next((col for col in columns if any(alias in col for alias in DATE_VARIATIONS)), None)
 
     # Find position of the type column; if a candidate is found, check values to confirm
     type_col = next((col for col in columns if any(alias in col for alias in TYPE_NAME_VARIATIONS)), None)
     if type_col:
         type_column_values = set(tx_list[type_col].str.lower().unique())
-        if type_column_values.issubset(set(TYPE_VALUE_VARIATIONS)):
-            col_positions['type'] = type_col
+        if not type_column_values.issubset(set(TYPE_VALUE_VARIATIONS)):
+            type_col = None
 
     # Columns containing date keywords not to be considered as description or amount columns (fixes edge cases detected)
-    desc_pos = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
-    amount_pos = next((col for col in columns if any(alias in col for alias in AMOUNT_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
-
+    desc_col = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
+    amount_col = next((col for col in columns if any(alias in col for alias in AMOUNT_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
+    # TODO: Manage scenario where type is indicative and amount has sign
     # Try to determine format based on type and amount columns
-    if amount_pos and type_col:
-        # All amounts are positive; credit/debit determined by type
-        tx_list = tx_list.iloc[:, [date_pos, type_pos, desc_pos, amount_pos]]
+    if amount_col and type_col:
+        # Credits/debits determined by 'type' column; all amounts are positive
+        tx_list = tx_list.iloc[:, [date_col, type_col, desc_col, amount_col]]
         tx_list.columns = ['date', 'description', 'amount']
         return tx_list, 'TYPE_AMOUNTS'
-    elif 'amount' in col_positions:
-        # Amounts are positive (credit) and negative (debit); no type column
-        tx_list = tx_list.iloc[:, [date_pos, desc_pos, amount_pos]]
-        tx_list.columns = ['date', 'type', 'description', 'amount']
+    elif amount_col:
+        # Credits/debits determined by sign of 'amount' column
+        tx_list = tx_list.loc[:, [date_col, desc_col, amount_col]]
+        tx_list.columns = ['date', 'description', 'amount']
         return tx_list, 'ONLY_AMOUNTS'
 
     # No amount found; look for credit/debit columns
@@ -69,8 +69,9 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     db_pos = next((col for col in tx_list.columns if col.lower() in DB_VARIATIONS), None)
 
     if cr_pos and db_pos:
-        # All amounts are positive; credit/debit determined by column
-        tx_list = tx_list.iloc[:, [date_pos, desc_pos, cr_pos, db_pos]]
+        #TODO: Manage scenario where credit/debit columns are indicative and amount has sign
+        # Credits/debits in separate columns; all amounts are positive
+        tx_list = tx_list.loc[:, [date_col, desc_col, cr_pos, db_pos]]
         tx_list.columns = ['date', 'description', 'credit', 'debit']
         return tx_list, 'CR_DB_AMOUNTS'
     else:
