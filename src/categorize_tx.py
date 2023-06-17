@@ -44,7 +44,7 @@ def fuzzy_tx_categorization(
 
     # If a match is found, return the category of the matched description
     if match_results:
-        return description_category_pairs.at[match_results[2], "Category"]
+        return description_category_pairs.at[match_results[2], 'category']
     
     return None
 
@@ -101,7 +101,7 @@ async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
 
     # Iterate over the DataFrame in batches of 10 rows
     chunksize = 10
-    tasks = [categorize_tx_batch(chain=chain, tx_descriptions="\n".join(chunk["Description"]), parser=fixer_parser, prompt=prompt) 
+    tasks = [categorize_tx_batch(chain=chain, tx_descriptions="\n".join(chunk['description']), parser=fixer_parser, prompt=prompt) 
         for chunk in np.array_split(tx_list, tx_list.shape[0]//chunksize + 1)]
 
     results_list = await asyncio.gather(*tasks)
@@ -109,7 +109,7 @@ async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
     # unpack the list of results; each result being a list of tuples (description-category pairs)
     categorized_descriptions = pd.DataFrame(
         [desc_cat_pair for result in results_list for desc_cat_pair in result],
-        columns=["Description", "Category"],
+        columns=['description', 'category'],
     )
 
     return categorized_descriptions

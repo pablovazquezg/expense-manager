@@ -11,26 +11,27 @@ EXPENSE_CAT_TEMPLATE = """
     -Auto: auto body
     -Bars: bar, pubs, irish, brewery
     -Beauty: body
+    -Cashback: cashback, reward, bonus, cash back
     -Clothing: clothing, shoes, accessories
     -Coffee Shops: coffee, cafe, tea, Starbucks, Dunkin
     -Credit Card Payment: card payment, autopay
-    -Dry Cleaning: cleaners, dry, cleaning
     -Education: kindle, tuition
     -Entertainment: event, show, movies, cinema, theater
     -Fees: Fee
     -Food: snack, Donalds, Burger King, KFC, Subway, Pizza, Domino, Taco Bell, Wendy, Chick-fil-A, Popeyes, Arby's, Chipotle
     -Fuel: fuel, gas, petrol
     -Gifts: donation, gift
-    -Groceries: groceries, supermarket, food
+    -Groceries: groceries, supermarket, food, familia
     -Gym: gym, fitness, yoga, pilates, crossfit
     -Home: Ikea
     -Housing: rent, mortgage
-    -Income: refund, deposit, paycheck, cashback, reward
+    -Income: refund, deposit, paycheck
     -Insurance: insurance
     -Medical: medical, doctor, dentist, hospital, clinic
     -Pets: vet, veterinary, pet, dog, cat
     -Pharmacy: pharmacy, drugstore, cvs, walgreens, rite aid, duane
     -Restaurants: restaurant, lunch, dinner
+    -Services: service, laundry, dry cleaning
     -Shopping: shopping, amazon, walmart, target, safeway
     -Streaming: Netflix, Spotify, Hulu, HBO
     -Taxes: tax, irs

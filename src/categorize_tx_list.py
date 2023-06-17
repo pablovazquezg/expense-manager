@@ -29,14 +29,14 @@ async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
     if os.path.exists(REF_OUTPUT_FILE):
         # Read description-category pairs reference file
         description_category_pairs = pd.read_csv(
-            REF_OUTPUT_FILE, header=None, names=["Description", "Category"]
+            REF_OUTPUT_FILE, header=None, names=['description', 'category']
         )
 
         # Extract only descriptions for faster matching
-        descriptions = description_category_pairs["Description"].values
+        descriptions = description_category_pairs['description'].values
 
         # Use fuzzy matching to find similar descriptions and assign the category
-        tx_list["Category"] = tx_list["Description"].apply(
+        tx_list['category'] = tx_list['description'].apply(
             fuzzy_tx_categorization,
             args=(
                 descriptions,
@@ -46,15 +46,15 @@ async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
 
     # Look for uncategorized transactions; deduplicate and sort by description
     uncategorized_descriptions = (
-        tx_list[tx_list["Category"].isnull()]
-        .drop_duplicates(subset=["Description"])
-        .sort_values(by=["Description"])
+        tx_list[tx_list['category'].isnull()]
+        .drop_duplicates(subset=['description'])
+        .sort_values(by=['description'])
     )
 
     # Ask llm to categorize remaining descriptions
     if len(uncategorized_descriptions) > 0:
         categorized_descriptions = await llm_tx_categorization(
-            uncategorized_descriptions[["Description", "Category"]]
+            uncategorized_descriptions[['description', 'category']]
         )
 
         categorized_descriptions.dropna(inplace=True)
@@ -66,13 +66,13 @@ async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
         categorized_descriptions.to_csv(file_path, index=False, header=False)
 
         # Add new description-category pairs to the tx_list
-        tx_list["Category"] = tx_list["Category"].fillna(
-            tx_list["Description"].map(
-                categorized_descriptions.set_index("Description")["Category"]
+        tx_list['category'] = tx_list['category'].fillna(
+            tx_list['description'].map(
+                categorized_descriptions.set_index('description')['category']
             )
         )
         
-        # Fill remaining NaN values in "Category" with 'Other'
-        tx_list["Category"] = tx_list["Category"].fillna('Other')
+        # Fill remaining NaN values in 'category' with 'Other'
+        tx_list['category'] = tx_list['category'].fillna('Other')
 
     return tx_list

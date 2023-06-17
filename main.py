@@ -25,6 +25,9 @@ from src.config import (
 
 from src.file_processing import delete_stage_files, merge_files, process_file
 
+#TODO: Add account
+#TODO: Add Debit / Credit
+#TODO: More sophisticated on the amounts
 
 async def main():
     # Load environment variables from .env file

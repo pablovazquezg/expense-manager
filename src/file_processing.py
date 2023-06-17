@@ -10,16 +10,18 @@ import pandas as pd
 from dateparser import parse
 
 # Local application/library specific imports
-from src.inspect_file import find_relevant_columns, find_cr_db_columns
+from src.inspect_file import find_relevant_columns, determine_tx_format
 from src.categorize_tx_list import categorize_tx_list
 from src.config import (
     DATA_CHECKS_STAGE_FOLDER,
     DATA_CHECKS_OUTPUT_FILE,
+    REF_OUTPUT_FILE,
     TX_STAGE_FOLDER, 
     TX_OUTPUT_FILE, 
     REF_STAGE_FOLDER,
-    REF_OUTPUT_FILE
-)
+    CR_VARIATIONS,
+    DB_VARIATIONS)
+
 
 #TODO: Clean all TODOs in this file
 #TODO: Git not to upload data files
@@ -37,35 +39,24 @@ async def process_file(input_file_path: str) -> None:
     Returns:
         None
     """
-    # Read file (includes data cleaning and standardization)
-    tx_list = read_prep_data(input_file_path)
+    # Read, clean, and standardize data
+    tx_list = standardize_data(input_file_path)
 
     # Extract input amount and number of transactions for data validation purposes
-    total_amount_in = tx_list["Amount"].sum()
-    total_count_in = len(tx_list.index)
+    data_checks = [tx_list['amount'].sum(), len(tx_list.index)]
 
     # Categorize transactions
     categorized_tx_list = await categorize_tx_list(tx_list)
 
     # Extract output amount and number of transactions for data validation purposes
-    total_amount_out = categorized_tx_list["Amount"].sum()
-    total_count_out = len(categorized_tx_list.index)
-    
-    # Save data checks file to interim folder. All files will be merged at the end (see merge_interim_results() below).
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    new_file_name = f"{timestamp}_{os.path.basename(input_file_path)}"
-    new_file_path = os.path.join(DATA_CHECKS_STAGE_FOLDER, new_file_name)
-    with open(new_file_path, "w", encoding="utf-8") as file:
-        file.write(f"{new_file_name}, {total_amount_in}, {total_amount_out}, {total_count_in}, {total_count_out}\n\n")
+    data_checks.extend([categorized_tx_list['amount'].sum(), len(categorized_tx_list.index)])
 
-    # Save output file (with categorized transactions) to interim folder. All files will be merged at the end (see merge_interim_results() below).
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    new_file_name = f"{timestamp}_{os.path.basename(input_file_path)}"
-    new_file_path = os.path.join(TX_STAGE_FOLDER, new_file_name)
-    categorized_tx_list.to_csv(new_file_path, index=False, header=False)
+    # Save output and data validation files to interim folder
+    save_interim_results(input_file_path, data_checks, categorized_tx_list)
 
 
-def read_prep_data(file_path: str) -> pd.DataFrame:
+
+def standardize_data(file_path: str, data_format: str) -> pd.DataFrame:
     """
     Read and prepare the data from the input file.
 
@@ -75,26 +66,56 @@ def read_prep_data(file_path: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Prepared transaction data.
     """
+    
+    # Read file, normalize column names, and determine data format
+    tx_list = pd.read_csv(file_path, index_col=None)
+    tx_list.columns = tx_list.columns.str.lower().str.strip()
+
+    data_format, col_positions = determine_tx_format(tx_list)
+    
+    # Standardize types and amounts based on data format
     tx_list = pd.read_csv(file_path, index_col=False)
+    tx_list.columns = tx_list.columns.str.lower().str.strip()
+    file_format, col_positions = determine_tx_format(tx_list)
+
+    if (file_format == "CR_DB_AMOUNTS"):
+        # Consolidate (melt) C/D columns under a new 'type' column; move amounts to new 'amount' column
+        # After doing this, update the file format to reflect the new structure (both type and amount columns)
+        cr_db_col_positions = [col_positions.credit, col_positions.debit]
+        tx_list = melt_cr_db_cols(tx_list, cr_db_col_positions)
+        file_format = "TYPE_AMOUNTS"
+
+    if (file_format == "TYPE_AMOUNTS"):
+        # Standardize types
+        tx_list.loc[:,'type'] = tx_list.loc[:,'type'].apply(lambda x: 'C' if x in CR_VARIATIONS else 'D' if x in DB_VARIATIONS else None)
+        # Standardize amounts based on type
+        tx_list.loc[:, 'amount'] = tx_list.apply(lambda x: abs(x['amount']) if x['type'] == 'C' else -abs(x['amount']), axis=1)
+    else: 
+        # File format is ONLY_AMOUNTS
+        # Standardize amounts (assuming more debits than debits, so if more positive than negatives, invert all amounts)
+        count_pos = len(tx_list[tx_list['amount'] > 0])
+        count_neg = len(tx_list[tx_list['amount'] < 0])
+        if count_pos > count_neg:
+            tx_list.loc[:, 'amount'] = -tx_list.loc[:, 'amount']
+
+        # Standardize types based on amounts
+        tx_list.loc[:, 'type'] = tx_list.apply(lambda x: 'C' if x['amount'] >= 0 else 'D', axis=1)
+
+    
+    # Standardize dates
+    tx_list['date'] = pd.to_datetime(tx_list['date']).dt.strftime('%Y/%m/%d')
     data_sample = tx_list.head(10)
-    split_credits_debits = find_cr_db_columns(data_sample)
+    tx_list = standardize_format(tx_list)
 
     # If C/D on different columns, consolidate (melt) them under a 'Type' column; keep amounts in new column
-    if split_credits_debits:
-        all_columns = tx_list.columns.tolist()
-
-        # Create a list of indices for columns not in split_credits_debits
-        id_vars = [i for i in range(len(all_columns)) if i not in split_credits_debits]
-
-        # Get the column names corresponding to the positions in id_vars and split_credits_debits
-        id_var_names = [all_columns[i] for i in id_vars]
-        value_var_names = [all_columns[i] for i in split_credits_debits]
-
-        # Melt the DataFrame using id_var_names and value_var_names as the column names
-        tx_list = tx_list.melt(id_vars=id_var_names, value_vars=value_var_names, var_name='Type', value_name='Amount')
-
-        # Drop rows with missing values in the 'Amount' column; refresh the data sample since the structure has changed
-        tx_list.dropna(subset=['Amount'], inplace=True)
+    if cr_db_cols:
+        
+        
+        # Ensure Credit/Debit amounts are positive/negative based on the Type
+        tx_list['amount'] = tx_list.apply(change_sign, axis=1)
+        
+        # Drop rows with missing values in the 'amount' column; refresh the data sample since the structure has changed
+        tx_list.dropna(subset=['amount'], inplace=True)
         data_sample = tx_list.head(10)
 
     # Locate relevant columns (Date, Description, Amount, Type)
@@ -102,13 +123,32 @@ def read_prep_data(file_path: str) -> pd.DataFrame:
 
     # Keep relevant columns and rename them to standard names (across all files to be processed)
     tx_list = tx_list.iloc[:, relevant_cols]
-    tx_list.columns = ['Date', 'Description', 'Amount']
+    tx_list.columns = ['date', 'description', 'amount']
 
-    tx_list['Amount'] = standardize_amounts(tx_list['Amount'])
+    tx_list.loc[:,'amount'] = standardize_amounts(tx_list['amount'])
+
+    # Create a Type (Debit/Credit) based on the sign of the Amount
+    tx_list.insert(1, "Type", tx_list['amount'].apply(lambda x: "C" if x > 0 else "D"))
 
     # Insert a Category column to the DataFrame and fill it up with nulls
-    tx_list["Category"] = None
+    tx_list.insert(2, 'category', None)
 
+    return tx_list
+
+
+def melt_cr_db_cols(tx_list: pd.DataFrame, cr_db_cols: list) -> pd.DataFrame:
+    all_columns = tx_list.columns.tolist()
+
+    # Create a list of indices for columns other than the Credit/Debit columns
+    id_vars = [i for i in range(len(all_columns)) if i not in cr_db_cols]
+
+    # Get the column names corresponding to the positions in id_vars and cr_db_cols
+    id_var_names = [all_columns[i] for i in id_vars]
+    value_var_names = [all_columns[i] for i in cr_db_cols]
+
+    # Melt the DataFrame using id_var_names and value_var_names as the column names
+    tx_list = tx_list.melt(id_vars=id_var_names, value_vars=value_var_names, var_name='type', value_name='amount')
+    
     return tx_list
 
 
@@ -123,20 +163,7 @@ def standardize_amounts(amounts: pd.Series) -> pd.Series:
         pd.Series: Standardized amounts.
     """
 
-    # Sample a single entry to determine amount format (US vs European)
-    sample_entry = amounts.iloc[0]
-
-    # Determine format based on the sample entry
-    period_count = str(sample_entry).count('.')
-    comma_count = str(sample_entry).count(',')
-
-    # If there are more commas than periods, assume European format
-    if comma_count > period_count:
-        # Replace the thousand separator and change the decimal separator
-        amounts = amounts.astype(str).str.replace('.', '', regex=False).str.replace(',', '.')
-    else:
-        # Remove the thousand separator
-        amounts = amounts.astype(str).str.replace(',', '', regex=False)
+    
 
     amounts = amounts.astype(float)
     # Standardize Credits and Debits signs (assumes more Debits than Credits)
@@ -146,6 +173,7 @@ def standardize_amounts(amounts: pd.Series) -> pd.Series:
         amounts = -amounts
 
     return amounts
+
 
 
 def merge_files(in_folder: str, out_file: str) -> None:
@@ -170,20 +198,49 @@ def merge_files(in_folder: str, out_file: str) -> None:
 
         # Write contents to output file (based on file type)
         if out_file == TX_OUTPUT_FILE:
-            df.columns = ["Date", "Description", "Amount", "Category"]
-            df.loc[:, 'Date'] = df['Date'].apply(lambda x: parse(x).strftime('%Y/%m/%d') if x is not None else None) # type: ignore
+            df.columns = ['Source', 'Date', 'Type', 'Category', 'Description', 'Amount']            
             df.to_csv(out_file, mode="a", index=False, header=not os.path.exists(out_file))
         elif out_file == DATA_CHECKS_OUTPUT_FILE:
             df.columns = ["File", "Amount In", "Amount Out", "Records In", "Records Out"]
             df.to_csv(out_file, mode="a", index=False, header=True)
         elif out_file == REF_OUTPUT_FILE:
-            df.columns = ["Description", "Category"]
+            df.columns = ['Description', 'Category']
             # Add master file to interim results
-            previous_master = pd.read_csv(REF_OUTPUT_FILE, names=["Description", "Category"], header=0)
+            previous_master = pd.read_csv(REF_OUTPUT_FILE, names=['Description', 'Category'], header=0)
             df = pd.concat([df, previous_master], ignore_index=True)
+            # Drop duplicates, sort, and write to create new Master File
+            df.drop_duplicates().sort_values(by=['description']).to_csv(out_file, mode="w", index=False, header=True)
 
-            # Drop duplicates, sort, and write to output file
-            df.drop_duplicates().sort_values(by=["Description"]).to_csv(out_file, mode="w", index=False, header=True)
+
+
+def save_interim_results(input_file_path: str, data_checks: list, categorized_tx_list: pd.DataFrame) -> None:
+    """
+    Save interim results to the appropriate folders.
+
+    Args:
+        input_file_path (str): Path to the input file.
+        data_checks (list): Data checks results.
+        categorized_tx_list (pd.DataFrame): Categorized transaction list.
+
+    Returns:
+        None
+    """
+
+    # Save data checks file to interim folder. All files will be merged at the end (see merge_interim_results() below).
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    file_name = os.path.basename(input_file_path)
+    file_path = os.path.join(DATA_CHECKS_STAGE_FOLDER, f"{timestamp}_{file_name}")
+    amount_in, amount_out, cunt_in, count_out = data_checks
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(f"{file_name}, {amount_in}, {amount_out}, {cunt_in}, {count_out}\n\n")
+
+    # Save output file (with categorized transactions) to interim folder. All files will be merged at the end (see merge_interim_results() below).
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    file_name = os.path.basename(input_file_path)
+    file_path = os.path.join(TX_STAGE_FOLDER, f"{timestamp}_{file_name}")
+    categorized_tx_list.insert(loc=0, column='Source', value=file_name)
+    categorized_tx_list.to_csv(file_path, index=False, header=False)
+
 
 
 def delete_stage_files() -> None:
