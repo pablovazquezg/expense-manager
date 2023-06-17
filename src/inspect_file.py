@@ -23,7 +23,7 @@ from src.config import (
 
 
 #TODO: Refactor all code
-def determine_tx_format(tx_list: pd.DataFrame) -> tuple:
+def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     """
     Analyzes the transaction DataFrame and determines the format and column positions.
 
@@ -39,37 +39,44 @@ def determine_tx_format(tx_list: pd.DataFrame) -> tuple:
     columns = tx_list.columns
 
     # Find the first column that contains any date keyword (first date is often the transaction date)
-    date_pos = next((col for col in columns if col in DATE_VARIATIONS), None)
+    date_pos = next((col for col in columns if any(alias in col for alias in DATE_VARIATIONS)), None)
 
-    # Columns containing date keywords not to be considered for description or amount (fixes edge cases detected)
-    desc_pos = next((col for col in columns if (col in DESCRIPTION_VARIATIONS and not col in DATE_VARIATIONS)), None)
-    amount_position = next((i for i, col in enumerate(columns) if any(keyword in col for keyword in AMOUNT_VARIATIONS) and not any(keyword in col for keyword in DATE_VARIATIONS)), None)
-
-    # Find position of the amount column (if any)
-    col_positions['amount'] = next(, None)
-
-    # Find position of the type column; if a candidate is found, check if it contains valid values.
-    type_col = next((col for col in tx_list.columns if col.lower() in TYPE_VARIATIONS), None)
+    # Find position of the type column; if a candidate is found, check values to confirm
+    type_col = next((col for col in columns if any(alias in col for alias in TYPE_NAME_VARIATIONS)), None)
     if type_col:
         type_column_values = set(tx_list[type_col].str.lower().unique())
-        if type_column_values.issubset(set(CR_VARIATIONS + DB_VARIATIONS)):
+        if type_column_values.issubset(set(TYPE_VALUE_VARIATIONS)):
             col_positions['type'] = type_col
-    
+
+    # Columns containing date keywords not to be considered as description or amount columns (fixes edge cases detected)
+    desc_pos = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
+    amount_pos = next((col for col in columns if any(alias in col for alias in AMOUNT_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
 
     # Try to determine format based on type and amount columns
-    if 'amount' in col_positions and 'type' in col_positions:
-        return 'TYPE_AMOUNTS', col_positions
+    if amount_pos and type_col:
+        # All amounts are positive; credit/debit determined by type
+        tx_list = tx_list.iloc[:, [date_pos, type_pos, desc_pos, amount_pos]]
+        tx_list.columns = ['date', 'description', 'amount']
+        return tx_list, 'TYPE_AMOUNTS'
     elif 'amount' in col_positions:
-        return 'ONLY_AMOUNTS', col_positions
+        # Amounts are positive (credit) and negative (debit); no type column
+        tx_list = tx_list.iloc[:, [date_pos, desc_pos, amount_pos]]
+        tx_list.columns = ['date', 'type', 'description', 'amount']
+        return tx_list, 'ONLY_AMOUNTS'
 
-    # No amount found; look for credit and debit columns
-    col_positions['credit'] = next((col for col in tx_list.columns if col.lower() in CR_VARIATIONS), None)
-    col_positions['debit'] = next((col for col in tx_list.columns if col.lower() in DB_VARIATIONS), None)
+    # No amount found; look for credit/debit columns
+    cr_pos = next((col for col in tx_list.columns if col.lower() in CR_VARIATIONS), None)
+    db_pos = next((col for col in tx_list.columns if col.lower() in DB_VARIATIONS), None)
 
-    if col_positions['credit'] and col_positions['debit']:
-        return 'CR_DB_AMOUNTS', col_positions
+    if cr_pos and db_pos:
+        # All amounts are positive; credit/debit determined by column
+        tx_list = tx_list.iloc[:, [date_pos, desc_pos, cr_pos, db_pos]]
+        tx_list.columns = ['date', 'description', 'credit', 'debit']
+        return tx_list, 'CR_DB_AMOUNTS'
+    else:
+        raise ValueError("The DataFrame does not match any known format")
 
-    raise ValueError("The DataFrame does not match any known format")
+    
 
 
 
