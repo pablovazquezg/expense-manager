@@ -10,7 +10,7 @@ import pandas as pd
 from dateparser import parse
 
 # Local application/library specific imports
-from src.inspect_file import find_relevant_columns, determine_tx_format
+from src.inspect_file import find_relevant_columns, extract_tx_data
 from src.categorize_tx_list import categorize_tx_list
 from src.config import (
     DATA_CHECKS_STAGE_FOLDER,
@@ -67,22 +67,25 @@ def standardize_data(file_path: str, data_format: str) -> pd.DataFrame:
         pd.DataFrame: Prepared transaction data.
     """
     
-    # Read file, normalize column names, and determine data format
     tx_list = pd.read_csv(file_path, index_col=None)
     tx_list.columns = tx_list.columns.str.lower().str.strip()
 
-    data_format, col_positions = determine_tx_format(tx_list)
+    # Extract relevant columns and determine data format
+    tx_list, data_format = extract_tx_data(tx_list)
+
+    # Standardize dates to YYYY/MM/DD formatd
+    tx_list['date'] = pd.to_datetime(tx_list['date']).dt.strftime('%Y/%m/%d')
     
     # Standardize types and amounts based on data format
     tx_list = pd.read_csv(file_path, index_col=False)
     tx_list.columns = tx_list.columns.str.lower().str.strip()
-    file_format, col_positions = determine_tx_format(tx_list)
+    file_format, col_positions = extract_tx_data(tx_list)
 
     if (file_format == "CR_DB_AMOUNTS"):
         # Consolidate (melt) C/D columns under a new 'type' column; move amounts to new 'amount' column
-        # After doing this, update the file format to reflect the new structure (both type and amount columns)
-        cr_db_col_positions = [col_positions.credit, col_positions.debit]
-        tx_list = melt_cr_db_cols(tx_list, cr_db_col_positions)
+        tx_list = tx_list.melt(id_vars=['date', 'description'], value_vars=['credit', 'debit'], var_name='type', value_name='amount')
+        # Drop empty amounts and update structure to "TYPE_AMOUNTS"
+        tx_list.dropna(subset=['amount'], inplace=True)
         file_format = "TYPE_AMOUNTS"
 
     if (file_format == "TYPE_AMOUNTS"):
@@ -91,7 +94,7 @@ def standardize_data(file_path: str, data_format: str) -> pd.DataFrame:
         # Standardize amounts based on type
         tx_list.loc[:, 'amount'] = tx_list.apply(lambda x: abs(x['amount']) if x['type'] == 'C' else -abs(x['amount']), axis=1)
     else: 
-        # File format is ONLY_AMOUNTS
+        # File format is ONLY_AMOUNTS (i.e. no type or Cr/Db columns; type is determined by amount sign)
         # Standardize amounts (assuming more debits than debits, so if more positive than negatives, invert all amounts)
         count_pos = len(tx_list[tx_list['amount'] > 0])
         count_neg = len(tx_list[tx_list['amount'] < 0])
@@ -101,79 +104,12 @@ def standardize_data(file_path: str, data_format: str) -> pd.DataFrame:
         # Standardize types based on amounts
         tx_list.loc[:, 'type'] = tx_list.apply(lambda x: 'C' if x['amount'] >= 0 else 'D', axis=1)
 
-    
-    # Standardize dates
-    tx_list['date'] = pd.to_datetime(tx_list['date']).dt.strftime('%Y/%m/%d')
-    data_sample = tx_list.head(10)
-    tx_list = standardize_format(tx_list)
-
-    # If C/D on different columns, consolidate (melt) them under a 'Type' column; keep amounts in new column
-    if cr_db_cols:
-        
-        
-        # Ensure Credit/Debit amounts are positive/negative based on the Type
-        tx_list['amount'] = tx_list.apply(change_sign, axis=1)
-        
-        # Drop rows with missing values in the 'amount' column; refresh the data sample since the structure has changed
-        tx_list.dropna(subset=['amount'], inplace=True)
-        data_sample = tx_list.head(10)
-
-    # Locate relevant columns (Date, Description, Amount, Type)
-    relevant_cols = find_relevant_columns(data_sample)
-
-    # Keep relevant columns and rename them to standard names (across all files to be processed)
-    tx_list = tx_list.iloc[:, relevant_cols]
-    tx_list.columns = ['date', 'description', 'amount']
-
-    tx_list.loc[:,'amount'] = standardize_amounts(tx_list['amount'])
-
-    # Create a Type (Debit/Credit) based on the sign of the Amount
-    tx_list.insert(1, "Type", tx_list['amount'].apply(lambda x: "C" if x > 0 else "D"))
-
-    # Insert a Category column to the DataFrame and fill it up with nulls
-    tx_list.insert(2, 'category', None)
+    # Insert Source and Category columns and reindex df to desired order
+    tx_list.insert('source', os.path.basename(file_path))
+    tx_list.insert('category', None)
+    tx_list = tx_list.reindex(columns=['source', 'date', 'type', 'category', 'description', 'amount'])
 
     return tx_list
-
-
-def melt_cr_db_cols(tx_list: pd.DataFrame, cr_db_cols: list) -> pd.DataFrame:
-    all_columns = tx_list.columns.tolist()
-
-    # Create a list of indices for columns other than the Credit/Debit columns
-    id_vars = [i for i in range(len(all_columns)) if i not in cr_db_cols]
-
-    # Get the column names corresponding to the positions in id_vars and cr_db_cols
-    id_var_names = [all_columns[i] for i in id_vars]
-    value_var_names = [all_columns[i] for i in cr_db_cols]
-
-    # Melt the DataFrame using id_var_names and value_var_names as the column names
-    tx_list = tx_list.melt(id_vars=id_var_names, value_vars=value_var_names, var_name='type', value_name='amount')
-    
-    return tx_list
-
-
-def standardize_amounts(amounts: pd.Series) -> pd.Series:
-    """
-    Standardize the amounts by removing the thousand separator and adjusting the sign for credits and debits.
-
-    Args:
-        amounts (pd.Series): Amounts to be standardized.
-
-    Returns:
-        pd.Series: Standardized amounts.
-    """
-
-    
-
-    amounts = amounts.astype(float)
-    # Standardize Credits and Debits signs (assumes more Debits than Credits)
-    positive_count = (amounts > 0).sum()
-    negative_count = (amounts < 0).sum()
-    if positive_count > negative_count:
-        amounts = -amounts
-
-    return amounts
-
 
 
 def merge_files(in_folder: str, out_file: str) -> None:
