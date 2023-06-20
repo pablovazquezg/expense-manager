@@ -1,7 +1,8 @@
 # Standard library imports
 import ast
 import json
-from typing import Any, List, Tuple, Optional
+import logging
+from typing import Any, List, Tuple, Optional, Dict, Union
 
 # Third-party library imports
 import asyncio
@@ -67,24 +68,24 @@ async def llm_list_categorizer(tx_list: pd.DataFrame) -> pd.DataFrame:
     prompt = PromptTemplate.from_template(template=templates.EXPENSE_CAT_TEMPLATE)    
     chain = LLMChain(llm=llm, prompt=prompt)
 
-    # Iterate over the DataFrame in batches of 10 rows
+    # Iterate over the DataFrame in batches
     tasks = []
-
     for chunk in np.array_split(tx_list, tx_list.shape[0] // TX_PER_LLM_RUN + 1):
-        tasks.append(asyncio.create_task(llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']), parser=fixer_parser, prompt=prompt)))
-        
-    # TODO: Find out why the exception to begin with
-    # Split the tx_list DataFrame into chunks and process each one
-    for chunk in np.array_split(tx_list, tx_list.shape[0] // TX_PER_LLM_RUN + 1):
-        try:
-            result = await llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']), parser=fixer_parser, prompt=prompt)
-            results.extend(result)
-            print(f"Successfully categorized {len(result)} transactions.")
-        except Exception as e:
-            print(f"Exception occurred while categorizing transactions: {str(e)}")
+        tasks.append(llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']).strip(), parser=fixer_parser, prompt=prompt))
 
-    # Convert the list of description-category pairs into a DataFrame
-    categorized_descriptions = pd.DataFrame(results, columns=['description', 'category'])
+    # Gather results and extract description-category pairs 
+    results = await asyncio.gather(*tasks)
+
+    successful_results = []
+    for result in results:
+        if result['success']:
+            successful_results.extend(result['output'])
+        else:
+            # If not successful, log the error
+            logging.error(result['output'])
+
+    # Convert the list of successful description-category pairs into a DataFrame
+    categorized_descriptions = pd.DataFrame(successful_results, columns=['description', 'category'])
 
     return categorized_descriptions
 
@@ -95,7 +96,7 @@ async def llm_sublist_categorizer(
     tx_descriptions: str,
     parser: OutputFixingParser,
     prompt: PromptTemplate,
-) -> List[Tuple]:
+) -> Dict[str, Union[bool, List[Tuple[str, str]]]]:
     """Categorize a batch of transactions using a LLM
     
     Args:
@@ -108,16 +109,22 @@ async def llm_sublist_categorizer(
         List[Tuple]: A list of tuples containing the categorized transaction descriptions.
     """
 
-    # Trim and remove newlines from tx_descriptions
-    raw_result = chain.run(input_data=tx_descriptions.strip())
+    raw_result = chain.run(input_data=tx_descriptions)
     #TODO: Manage all exceptions
     #TODO: Convert from strings; do I even need to do this?
     #TODO: Reduce number of tx; struggling past 50
+
+    logger = logging.getLogger(__name__)
+    call = {'success': True, 'output': []}
     try:
-        # Try to parse raw results; manage exceptions if they occur
+        # Create JSON string and parse it to ensure output is valid
         json_result = json.dumps({"output": ast.literal_eval(raw_result)})
         parsed_result = parser.parse(json_result)
-    except ValidationError as validation_error:
-        print(f"Validation Error: {validation_error}\nRaw Result: {raw_result}\n")
-        parsed_result = Desc_Categ_Pair(output=[("LLM ERROR DESC", "LLM ERROR CAT")])
-    return parsed_result.output
+        call['output'] = parsed_result.output
+    except (SyntaxError, ValueError, TypeError) as e:
+        logging.log(logging.ERROR, f"Parsing Error: {e}\nRaw Result: {raw_result}\n")
+        call['success'] = False
+    except Exception as e:
+        logging.log(logging.ERROR, f"Unexpected Error: {e}\nRaw Result: {raw_result}\n")
+        call['success'] = False
+    return call
