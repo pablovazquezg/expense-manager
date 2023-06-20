@@ -30,7 +30,7 @@ from src.config import (
 #TODO: Remove all print statements and amounts
 
 # Read file and process it (e.g. categorize transactions)
-def process_file(input_file_path: str) -> Tuple[str, bool, str]:
+async def process_file(input_file_path: str) -> Tuple[str, bool, str]:
     """
     Process the input file by reading, cleaning, standardizing, and categorizing the transactions.
 
@@ -46,7 +46,7 @@ def process_file(input_file_path: str) -> Tuple[str, bool, str]:
         tx_list = standardize_tx_format(input_file_path)
 
         # Categorize transactions
-        categorized_tx_list = categorize_tx_list(tx_list)
+        categorized_tx_list = await categorize_tx_list(tx_list)
 
         # Save output file to interim folder
         save_interim_results(input_file_path, categorized_tx_list)

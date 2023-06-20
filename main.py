@@ -6,6 +6,7 @@ import pandas as pd
 import concurrent.futures
 
 # Third-party library imports
+import asyncio
 import langchain
 import pandas as pd
 from dotenv import load_dotenv
@@ -31,19 +32,23 @@ from src.file_processing import delete_stage_files, merge_files, process_file
 #TODO: Add account
 #TODO: Add Debit / Credit
 #TODO: More sophisticated on the amounts
-
-def main():
+#TODO: Bring back data checks and alert user when there are issues
+async def main():
     # Set up runnning environment
     load_dotenv()
-    langchain.debug = True
+    langchain.debug = False
     logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL, format='%(asctime)s %(levelname)s %(name)s %(message)s')
     logger = logging.getLogger(__name__)
-    
+
     # Get all CSV files in the input folder
     file_paths = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV")) + glob.glob(os.path.join(TX_INPUT_FOLDER, "*.csv"))
 
+    tasks = []
     for file in file_paths:
-        process_file(file)    
+        tasks.append(process_file(file))
+
+    # Run all tasks concurrently
+    await asyncio.gather(*tasks)
     
     # Merge all interim results; append results to output files
     merge_files(DATA_CHECKS_STAGE_FOLDER, DATA_CHECKS_OUTPUT_FILE)
@@ -55,4 +60,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

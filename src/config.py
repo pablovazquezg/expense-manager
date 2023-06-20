@@ -22,7 +22,7 @@ DATE_VARIATIONS = frozenset(['date', 'fecha'])
 DESC_VARIATIONS = frozenset(['desc', 'desc.', 'description', 'descripción', 'concepto'])
 
 # LLM CONFIG
-TX_PER_LLM_RUN = 50 # Number of transactions to process in each LLM run
+TX_PER_LLM_RUN = 10 # Number of transactions to process in each LLM run
 
 # LOG CONFIG
 LOG_FILE = 'logs/app.log'
