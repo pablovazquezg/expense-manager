@@ -7,10 +7,10 @@ import pandas as pd
 
 # Local application/library specific imports
 from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER
-from src.categorize_tx import llm_tx_categorization, fuzzy_tx_categorization
+from src.categorize_tx import llm_list_categorizer, fuzzy_match_list_categorizer
 
 
-async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
+def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
     """
     Asynchronously categorizes a list of transactions.
     
@@ -37,7 +37,7 @@ async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
 
         # Use fuzzy matching to find similar descriptions and assign the category
         tx_list['category'] = tx_list['description'].apply(
-            fuzzy_tx_categorization,
+            fuzzy_match_list_categorizer,
             args=(
                 descriptions,
                 description_category_pairs,
@@ -53,7 +53,7 @@ async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
 
     # Ask llm to categorize remaining descriptions
     if len(uncategorized_descriptions) > 0:
-        categorized_descriptions = await llm_tx_categorization(
+        categorized_descriptions = llm_list_categorizer(
             uncategorized_descriptions[['description', 'category']]
         )
 

@@ -1,8 +1,8 @@
 # Standard library imports
-import asyncio
-import glob
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import glob
+import pandas as pd
+import concurrent.futures
 
 # Third-party library imports
 import langchain
@@ -20,29 +20,28 @@ from src.config import (
     TX_ARCHIVE_FOLDER,
     TX_INPUT_FOLDER,
     TX_OUTPUT_FILE,
-    TX_STAGE_FOLDER,
+    TX_STAGE_FOLDER
 )
 
 from src.file_processing import delete_stage_files, merge_files, process_file
-
+#TODO: Async. first, async for all files. then consider multiprocessing for multiple files at once.
 #TODO: Add account
 #TODO: Add Debit / Credit
 #TODO: More sophisticated on the amounts
 
-async def main():
+def main():
     # Load environment variables from .env file
     load_dotenv()
-
-    # Get all CSV files in the input folder
-    file_paths = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV")) + glob.glob(os.path.join(TX_INPUT_FOLDER, "*.csv"))
 
     # Enable debug mode for langchain
     langchain.debug = True
 
-    # Create tasks for processing each file asynchronously
-    tasks = [process_file(file_path) for file_path in file_paths]
-    await asyncio.gather(*tasks)
+    # Get all CSV files in the input folder
+    file_paths = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV")) + glob.glob(os.path.join(TX_INPUT_FOLDER, "*.csv"))
 
+    for file in file_paths:
+        process_file(file)    
+    
     # Merge all interim results; append results to output files
     merge_files(DATA_CHECKS_STAGE_FOLDER, DATA_CHECKS_OUTPUT_FILE)
     merge_files(REF_STAGE_FOLDER, REF_OUTPUT_FILE)
@@ -53,4 +52,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

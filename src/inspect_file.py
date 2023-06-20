@@ -42,11 +42,14 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     date_col = next((col for col in columns if any(alias in col for alias in DATE_VARIATIONS)), None)
 
     # Find position of the type column; if a candidate is found, check values to confirm
-    type_col = next((col for col in columns if any(alias in col for alias in TYPE_NAME_VARIATIONS)), None)
-    if type_col:
-        type_column_values = set(tx_list[type_col].str.lower().unique())
-        if not type_column_values.issubset(set(TYPE_VALUE_VARIATIONS)):
-            type_col = None
+    type_col = None
+    for col in columns:
+        if any(alias in col for alias in TYPE_NAME_VARIATIONS):
+            type_column_values = set(tx_list[col].str.lower().unique())
+            if type_column_values.issubset(set(TYPE_VALUE_VARIATIONS)):
+                type_col = col
+                break
+
 
     # Columns containing date keywords not to be considered as description or amount columns (fixes edge cases detected)
     desc_col = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
@@ -55,8 +58,8 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     # Try to determine format based on type and amount columns
     if amount_col and type_col:
         # Credits/debits determined by 'type' column; all amounts are positive
-        tx_list = tx_list.iloc[:, [date_col, type_col, desc_col, amount_col]]
-        tx_list.columns = ['date', 'description', 'amount']
+        tx_list = tx_list.loc[:, [date_col, type_col, desc_col, amount_col]]
+        tx_list.columns = ['date', 'type','description', 'amount']
         return tx_list, 'TYPE_AMOUNTS'
     elif amount_col:
         # Credits/debits determined by sign of 'amount' column
@@ -76,30 +79,3 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
         return tx_list, 'CR_DB_AMOUNTS'
     else:
         raise ValueError("The DataFrame does not match any known format")
-
-    
-
-
-
-def find_relevant_columns(data_sample: pd.DataFrame) -> List[int]:
-    """
-    Find the positions of the relevant columns (date, description, amount) in the DataFrame.
-
-    Args:
-        data_sample (pd.DataFrame): Sample data to search for relevant columns.
-
-    Returns:
-        List[int]: Positions of the relevant columns.
-    """
-    
-    # Convert the column names of the DataFrame to lowercase
-    columns = [col.lower() for col in data_sample.columns]
-
-
-
-    # Raise exception if either field is not found; they are all necessary
-    if date_position is None or description_position is None or amount_position is None:
-        raise Exception('Could not find all relevant columns (date, description, amount)')
-    
-    # Return the positions of the found columns
-    return [date_position, description_position, amount_position]
