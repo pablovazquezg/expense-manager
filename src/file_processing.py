@@ -3,6 +3,7 @@ import os
 import glob
 import shutil
 import asyncio
+from typing import Tuple
 from datetime import datetime
 
 # Third-party library imports
@@ -10,7 +11,7 @@ import pandas as pd
 from dateparser import parse
 
 # Local application/library specific imports
-from src.inspect_file import find_relevant_columns, extract_tx_data
+from src.inspect_file import extract_tx_data
 from src.categorize_tx_list import categorize_tx_list
 from src.config import (
     DATA_CHECKS_STAGE_FOLDER,
@@ -29,7 +30,7 @@ from src.config import (
 #TODO: Remove all print statements and amounts
 
 # Read file and process it (e.g. categorize transactions)
-async def process_file(input_file_path: str) -> None:
+def process_file(input_file_path: str) -> Tuple[str, bool, str]:
     """
     Process the input file by reading, cleaning, standardizing, and categorizing the transactions.
 
@@ -39,15 +40,21 @@ async def process_file(input_file_path: str) -> None:
     Returns:
         None
     """
+    # TODO: Update this if not using return values
+    try:
+        # Read file into standardized tx format: source, date, type, category, description, amount 
+        tx_list = standardize_tx_format(input_file_path)
+
+        # Categorize transactions
+        categorized_tx_list = categorize_tx_list(tx_list)
+
+        # Save output file to interim folder
+        save_interim_results(input_file_path, categorized_tx_list)
+    except Exception as e:
+        # Return an error indicator and exception info
+        return (input_file_path, False, str(e))
     
-    # Read file into standardized tx format: source, date, type, category, description, amount 
-    tx_list = standardize_tx_format(input_file_path)
-
-    # Categorize transactions
-    categorized_tx_list = await categorize_tx_list(tx_list)
-
-    # Save output file to interim folder
-    save_interim_results(input_file_path, categorized_tx_list)
+    return (input_file_path, True, "Success")
 
 
 
@@ -71,21 +78,19 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
 
     # Standardize dates to YYYY/MM/DD format
     tx_list['date'] = pd.to_datetime(tx_list['date'], infer_datetime_format=True).dt.strftime('%Y/%m/%d')
-
     
     # Check if credits and debits are in separate columns
     if (data_format == "CR_DB_AMOUNTS"):
         # Consolidate (melt) C/D columns under a new 'type' column; move amounts to new 'amount' column
         tx_list = tx_list.melt(id_vars=['date', 'description'], value_vars=['credit', 'debit'], var_name='type', value_name='amount')
         # Drop empty amounts and update structure to "TYPE_AMOUNTS"
+        tx_list = tx_list.dropna(subset=['amount'])
         data_format = "TYPE_AMOUNTS"
 
-    # Convert amounts to floats
-    # European format (1.234,56): replace '.' with nothing and ',' with '.'
-    # American format (1,234.56): replace ',' with nothing
+    # Convert amounts to floats    
     tx_list.loc[:,'amount'] = tx_list.loc[:,'amount'].apply(
         lambda x: float(x.replace('.', '').replace(',', '.')) 
-            if isinstance(x, str) and '.' in x and ',' in x and x.find('.') < x.find(',') 
+            if isinstance(x, str) and ',' in x and (('.' not in x) or (x.rfind('.') < x.rfind(',')))
             else float(x.replace(',', '')) if isinstance(x, str) 
             else x
         )
@@ -93,7 +98,7 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
     # Standardize types values and amount signs based on data format
     if (data_format == "TYPE_AMOUNTS"):
         # Standardize types
-        tx_list.loc[:,'type'] = tx_list.loc[:,'type'].apply(lambda x: 'C' if x in CR_VARIATIONS else 'D' if x in DB_VARIATIONS else None)
+        tx_list.loc[:,'type'] = tx_list.loc[:,'type'].apply(lambda x: 'C' if x.lower() in CR_VARIATIONS else 'D' if x.lower() in DB_VARIATIONS else None)
         # Standardize amounts based on type
         tx_list.loc[:, 'amount'] = tx_list.apply(lambda x: abs(x['amount']) if x['type'] == 'C' else -abs(x['amount']), axis=1)
     else: 
@@ -107,7 +112,8 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
         # Standardize types based on amounts
         tx_list.loc[:, 'type'] = tx_list.apply(lambda x: 'C' if x['amount'] >= 0 else 'D', axis=1)
 
-    # Reindex to desired tx format; source and category columns are new so will be empty
+    # Add source and reindex to desired tx format; category column is new and therefore empty
+    tx_list.loc[:, 'source'] = os.path.basename(file_path)
     tx_list = tx_list.reindex(columns=['source', 'date', 'type', 'category', 'description', 'amount'])
 
     return tx_list
@@ -166,7 +172,7 @@ def merge_files(in_folder: str, out_file: str) -> None:
             previous_master = pd.read_csv(REF_OUTPUT_FILE, names=['Description', 'Category'], header=0)
             df = pd.concat([df, previous_master], ignore_index=True)
             # Drop duplicates, sort, and write to create new Master File
-            df.drop_duplicates().sort_values(by=['description']).to_csv(out_file, mode="w", index=False, header=True)
+            df.drop_duplicates(subset=['Description']).sort_values(by=['Description']).to_csv(out_file, mode="w", index=False, header=True)
         else:
             raise ValueError("Invalid output file type.")
 

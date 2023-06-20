@@ -18,10 +18,10 @@ from langchain.output_parsers import PydanticOutputParser, OutputFixingParser
 from langchain.prompts import PromptTemplate
 import src.templates as templates
 from src.custom_classes import Desc_Categ_Pair
-from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER
+from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER, TX_PER_LLM_RUN
 
 
-def fuzzy_tx_categorization(
+def fuzzy_match_list_categorizer(
     description: str,
     descriptions: np.ndarray,
     description_category_pairs: pd.DataFrame,
@@ -49,9 +49,48 @@ def fuzzy_tx_categorization(
     return None
 
 
+async def llm_list_categorizer(tx_list: pd.DataFrame) -> pd.DataFrame:
+    """Categorize a list of transactions using a language model.
+    
+    Args:
+        tx_list (pd.DataFrame): The list of transactions to categorize.
+
+    Returns:
+        pd.DataFrame: The original dataframe with an additional column for the category.
+    """
+    
+    # Create base llm model and validation parser
+    llm = ChatOpenAI(temperature=0, client=Any)
+    fixer_parser = OutputFixingParser.from_llm(parser=PydanticOutputParser(pydantic_object=Desc_Categ_Pair), llm=llm)
+
+    # Create categorization prompt and chain
+    prompt = PromptTemplate.from_template(template=templates.EXPENSE_CAT_TEMPLATE)    
+    chain = LLMChain(llm=llm, prompt=prompt)
+
+    # Iterate over the DataFrame in batches of 10 rows
+    tasks = []
+
+    for chunk in np.array_split(tx_list, tx_list.shape[0] // TX_PER_LLM_RUN + 1):
+        tasks.append(asyncio.create_task(llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']), parser=fixer_parser, prompt=prompt)))
+        
+    # TODO: Find out why the exception to begin with
+    # Split the tx_list DataFrame into chunks and process each one
+    for chunk in np.array_split(tx_list, tx_list.shape[0] // TX_PER_LLM_RUN + 1):
+        try:
+            result = await llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']), parser=fixer_parser, prompt=prompt)
+            results.extend(result)
+            print(f"Successfully categorized {len(result)} transactions.")
+        except Exception as e:
+            print(f"Exception occurred while categorizing transactions: {str(e)}")
+
+    # Convert the list of description-category pairs into a DataFrame
+    categorized_descriptions = pd.DataFrame(results, columns=['description', 'category'])
+
+    return categorized_descriptions
+
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
-async def categorize_tx_batch(
+async def llm_sublist_categorizer(
     chain: LLMChain,
     tx_descriptions: str,
     parser: OutputFixingParser,
@@ -71,7 +110,9 @@ async def categorize_tx_batch(
 
     # Trim and remove newlines from tx_descriptions
     raw_result = chain.run(input_data=tx_descriptions.strip())
-    
+    #TODO: Manage all exceptions
+    #TODO: Convert from strings; do I even need to do this?
+    #TODO: Reduce number of tx; struggling past 50
     try:
         # Try to parse raw results; manage exceptions if they occur
         json_result = json.dumps({"output": ast.literal_eval(raw_result)})
@@ -80,36 +121,3 @@ async def categorize_tx_batch(
         print(f"Validation Error: {validation_error}\nRaw Result: {raw_result}\n")
         parsed_result = Desc_Categ_Pair(output=[("LLM ERROR DESC", "LLM ERROR CAT")])
     return parsed_result.output
-
-async def llm_tx_categorization(tx_list: pd.DataFrame) -> pd.DataFrame:
-    """Categorize a list of transactions using a language model.
-    
-    Args:
-        tx_list (pd.DataFrame): The list of transactions to categorize.
-
-    Returns:
-        pd.DataFrame: The original dataframe with an additional column for the category.
-    """
-    
-    # Create base llm model and validation parser
-    llm = ChatOpenAI(temperature=0, client=Any)
-    fixer_parser = OutputFixingParser.from_llm(parser=PydanticOutputParser(pydantic_object=Desc_Categ_Pair), llm=llm)
-
-    # Create categorization prompt and chain
-    prompt = PromptTemplate.from_template(template=templates.EXPENSE_CAT_TEMPLATE)    
-    chain = LLMChain(llm=llm, prompt=prompt)
-
-    # Iterate over the DataFrame in batches of 10 rows
-    chunksize = 10
-    tasks = [categorize_tx_batch(chain=chain, tx_descriptions="\n".join(chunk['description']), parser=fixer_parser, prompt=prompt) 
-        for chunk in np.array_split(tx_list, tx_list.shape[0]//chunksize + 1)]
-
-    results_list = await asyncio.gather(*tasks)
-
-    # unpack the list of results; each result being a list of tuples (description-category pairs)
-    categorized_descriptions = pd.DataFrame(
-        [desc_cat_pair for result in results_list for desc_cat_pair in result],
-        columns=['description', 'category'],
-    )
-
-    return categorized_descriptions
