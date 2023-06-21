@@ -68,7 +68,7 @@ async def llm_list_categorizer(tx_list: pd.DataFrame) -> pd.DataFrame:
     # Iterate over the DataFrame in batches
     tasks = []
     for chunk in np.array_split(tx_list, tx_list.shape[0] // TX_PER_LLM_RUN + 1):
-        tasks.append(llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']).strip()))
+        tasks.append(llm_sublist_categorizer(tx_list.attrs['file_name'], chain=chain, tx_descriptions="\n".join(chunk['description']).strip()))
 
     # Gather results and extract (valid) outputs
     # The results variable is a list of 'results', each 'result' being the output of a single LLM run
@@ -88,6 +88,7 @@ async def llm_list_categorizer(tx_list: pd.DataFrame) -> pd.DataFrame:
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 async def llm_sublist_categorizer(
+    file_name: str,
     chain: LLMChain,
     tx_descriptions: str,
 ) -> Dict[str, Union[bool, List[Tuple[str, str]]]]:
@@ -125,9 +126,9 @@ async def llm_sublist_categorizer(
                 result['valid'] = False
 
         result['output'] = valid_outputs
-        
+
     except Exception as e:
-        logging.log(logging.ERROR, f"| Unexpected Error: {e}\nRaw Result: {raw_result}")
+        logging.log(logging.ERROR, f"| File: {file_name} | Unexpected Error: {e}\nRaw Result: {raw_result}")
         result['valid'] = False
     
     return result

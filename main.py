@@ -38,6 +38,7 @@ async def main():
         tasks.append(process_file(file_path))
 
     # Run all tasks concurrently
+    print('\nProcessing files...')
     results = await asyncio.gather(*tasks)
 
     # Save results to file

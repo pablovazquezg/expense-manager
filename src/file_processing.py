@@ -2,6 +2,7 @@
 import os
 import glob
 import shutil
+import logging
 import asyncio
 from typing import Optional, Union, Dict
 from datetime import datetime
@@ -39,18 +40,21 @@ async def process_file(file_path: str) -> Dict[str, Union[str, pd.DataFrame]]:
         None
     """  
 
-    result= {'file_path': file_path, 'output': pd.DataFrame(), 'error': ''}
+    logger = logging.getLogger(__name__)
+    file_name = os.path.basename(file_path)
+    result= {'file_name': file_name, 'output': pd.DataFrame(), 'error': ''}
     try:
         # Read file into standardized tx format: source, date, type, category, description, amount 
         tx_list = standardize_tx_format(file_path)
 
         # Categorize transactions
         result['output'] = await categorize_tx_list(tx_list)
-        print(f'File {os.path.basename(file_path)} processed successfully.')
-
+        print(f'File processed sucessfully: {file_name}')
+    #TODO: Log error
     except Exception as e:
         # Return an error indicator and exception info
-        print(f'Error processing file {file_path}: {e}')
+        logging.log(logging.ERROR, f"| File: {file_name} | Unexpected Error: {e}")
+        print(f'ERROR processing file {file_name}: {e}')
         result['error'] = str(e)
     
     return result
@@ -69,6 +73,7 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
     """
 
     tx_list = pd.read_csv(file_path, index_col=False)    
+    tx_list.attrs['file_name'] = file_path
     tx_list.columns = tx_list.columns.str.lower().str.strip()
 
     # Extract relevant columns and determine data format
@@ -144,14 +149,13 @@ def save_results(results: list) -> None:
     tx_list = pd.DataFrame(columns=col_list)
     for result in results:
         if not result['error']:
-            ok_files.append(result['file_path'])
+            ok_files.append(result['file_name'])
             result_df = result['output']
             result_df.columns = col_list
             tx_list = pd.concat([tx_list, result_df], ignore_index=True)
         else:
-            ko_files.append(result['file_path'])
-            error_msg = f"{result['file_path']}: {result['error']}"
-            error_messages.append(error_msg)  
+            ko_files.append(result['file_name'])
+            error_messages.append(f"{result['file_name']}: {result['error']}")  
 
     # Write contents to output file (based on file type)
     tx_list.to_csv(TX_OUTPUT_FILE, mode="a", index=False, header=not os.path.exists(TX_OUTPUT_FILE))
@@ -166,10 +170,12 @@ def save_results(results: list) -> None:
     new_ref_data.drop_duplicates(subset=['Description']).sort_values(by=['Description']).to_csv(REF_OUTPUT_FILE, mode="w", index=False, header=True)
 
     # Summarize results
-    print(f"\nProcessed {len(results)} files: {len(ok_files)} successful, {len(ko_files)} with errors.\n")
+    print(f"\nProcessed {len(results)} files: {len(ok_files)} successful, {len(ko_files)} with errors\n")
     if len(ko_files):
         print(f"Errors in the following files:")
-        print('     \n'.join(error_messages))
+        for message in error_messages:
+            print(f"  {message}")
+        print('\n')
 
 
 def archive_files() -> None:

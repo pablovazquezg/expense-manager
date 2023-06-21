@@ -1,4 +1,5 @@
 # Standard library imports
+import logging
 from typing import List
 
 # Third-party library imports
@@ -32,6 +33,9 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     Raises:
         ValueError: If the DataFrame does not match any known format.
     """
+    
+    logger = logging.getLogger(__name__)
+
     columns = tx_list.columns
 
     # Find the first column that contains any date keyword (first date is often the transaction date)
@@ -74,4 +78,5 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
         tx_list.columns = ['date', 'description', 'credit', 'debit']
         return tx_list, 'CR_DB_AMOUNTS'
     else:
-        raise ValueError("The DataFrame does not match any known format")
+        logging.log(logging.ERROR, f"| File: {tx_list.attrs['file_name']} | Input file does not match any known format")
+        raise ValueError("Input file does not match any known format")
