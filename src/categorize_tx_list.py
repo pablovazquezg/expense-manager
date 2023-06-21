@@ -6,10 +6,10 @@ from datetime import datetime
 import pandas as pd
 
 # Local application/library specific imports
-from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER
+from src.config import REF_OUTPUT_FILE
 from src.categorize_tx import llm_list_categorizer, fuzzy_match_list_categorizer
 
-
+#TODO: Update folder structure
 async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
     """
     Asynchronously categorizes a list of transactions.
@@ -59,18 +59,14 @@ async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
 
         categorized_descriptions.dropna(inplace=True)
 
-        # Save timestamped file to interim folder; all files will be merged at the end
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-        file_name = f"{timestamp}_ref_stage.csv"
-        file_path = os.path.join(REF_STAGE_FOLDER, file_name)
-        categorized_descriptions.to_csv(file_path, index=False, header=False)
-
-        # Add new description-category pairs to the tx_list
-        tx_list['category'] = tx_list['category'].fillna(
-            tx_list['description'].map(
-                categorized_descriptions.set_index('description')['category']
+        # New description-category pairs are saved so no llm call is needed next time
+        if len(categorized_descriptions) > 0:
+            # For each uncategorized transaction, assign the category returned by the llm
+            tx_list['category'] = tx_list['category'].fillna(
+                tx_list['description'].map(
+                    categorized_descriptions.set_index('description')['category']
+                )
             )
-        )
         
         # Fill remaining NaN values in 'category' with 'Other'
         tx_list['category'] = tx_list['category'].fillna('Other')

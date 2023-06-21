@@ -19,7 +19,7 @@ from langchain.prompts import PromptTemplate
 
 # Local application/library specific imports
 import src.templates as templates
-from src.config import REF_OUTPUT_FILE, REF_STAGE_FOLDER, TX_PER_LLM_RUN
+from src.config import REF_OUTPUT_FILE, TX_PER_LLM_RUN
 
 
 def fuzzy_match_list_categorizer(
@@ -71,9 +71,16 @@ async def llm_list_categorizer(tx_list: pd.DataFrame) -> pd.DataFrame:
         tasks.append(llm_sublist_categorizer(chain=chain, tx_descriptions="\n".join(chunk['description']).strip()))
 
     # Gather results and extract (valid) outputs
+    # The results variable is a list of 'results', each 'result' being the output of a single LLM run
     results = await asyncio.gather(*tasks)
 
-    valid_outputs = [result['output'] for result in results if result['valid']]
+    # Extract valid results (each valid result is a list of description-category pairs)
+    valid_results = [result['output'] for result in results if result['valid']]
+
+    # Flatten the list of valid results to obtain a single list of description-category pairs
+    valid_outputs = [output for valid_result in valid_results for output in valid_result]
+
+    # Create a DataFrame from the valid outputs
     categorized_descriptions = pd.DataFrame(valid_outputs, columns=['description', 'category'])
 
     return categorized_descriptions
@@ -96,8 +103,7 @@ async def llm_sublist_categorizer(
         List[Tuple]: A list of tuples containing the categorized transaction descriptions.
     """
 
-    print(f'Running LLM chain with {len(tx_descriptions.splitlines())} transactions')
-    raw_result = chain.run(input_data=tx_descriptions)
+    raw_result = await chain.arun(input_data=tx_descriptions)
 
     logger = logging.getLogger(__name__)
     result = {'valid': True, 'output': []}
@@ -106,8 +112,8 @@ async def llm_sublist_categorizer(
         pattern = r"\['([^']+)', '([^']+)'\]"
         
         # Use it to extract all the correctly formatted pairs from the raw result
-        matches = re.findall(pattern, raw_result)
-        
+        matches = re.findall(pattern, raw_result.replace("\\'", "'"))
+
         # Loop over the matches, and try to parse them to ensure the content is valid
         valid_outputs = []
         for match in matches:
@@ -121,8 +127,7 @@ async def llm_sublist_categorizer(
         result['output'] = valid_outputs
         
     except Exception as e:
-        logging.log(logging.ERROR, f"Unexpected Error: {e}\nRaw Result: {raw_result}\n")
+        logging.log(logging.ERROR, f"| Unexpected Error: {e}\nRaw Result: {raw_result}")
         result['valid'] = False
     
-    print(f'IN: {len(tx_descriptions.splitlines())} OUT: {len(result["output"])}')
     return result

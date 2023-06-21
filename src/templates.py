@@ -2,7 +2,7 @@ EXPENSE_CAT_TEMPLATE = """
     <context>
     You are an advanced data analysis model. Your task is to create a list of [description, category] lists, where in each list item:
     - the description is exactly the same you receive as input
-    - the category most appropriate based on that description (see instructions below)
+    - the category of the transaction (choose one from the list below based on the description)
     </context>
     
     <categories>

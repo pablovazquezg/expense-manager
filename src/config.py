@@ -1,14 +1,6 @@
 # DATA FOLDERS
-REF_STAGE_FOLDER = 'data/ref_data/interim/'
-REF_OUTPUT_FILE = 'data/ref_data/output/ref_master_data.csv'
-REF_ARCHIVE_FOLDER = 'data/ref_data/archive/'
-
-DATA_CHECKS_STAGE_FOLDER = 'data/checks/interim/'
-DATA_CHECKS_OUTPUT_FILE = 'data/checks/output/checks_master_data.csv'
-DATA_CHECKS_ARCHIVE_FOLDER = 'data/checks/archive/'
-
+REF_OUTPUT_FILE = 'data/ref_data/ref_master_data.csv'
 TX_INPUT_FOLDER = 'data/tx_data/input/'
-TX_STAGE_FOLDER = 'data/tx_data/interim/'
 TX_OUTPUT_FILE = 'data/tx_data/output/tx_master_data.csv'
 TX_ARCHIVE_FOLDER = 'data/tx_data/archive/'
 
@@ -22,7 +14,7 @@ DATE_VARIATIONS = frozenset(['date', 'fecha'])
 DESC_VARIATIONS = frozenset(['desc', 'desc.', 'description', 'descripción', 'concepto'])
 
 # LLM CONFIG
-TX_PER_LLM_RUN = 10 # Number of transactions to process in each LLM run
+TX_PER_LLM_RUN = 10 # Tx to process per LLM run; higher values tend to result in output errors
 
 # LOG CONFIG
 LOG_FILE = 'logs/app.log'

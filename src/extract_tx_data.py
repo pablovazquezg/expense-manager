@@ -7,11 +7,7 @@ import pandas.api.types as pdt
 
 # Local application/library specific imports
 from src.config import (
-    DATA_CHECKS_STAGE_FOLDER,
-    DATA_CHECKS_OUTPUT_FILE,
-    TX_STAGE_FOLDER, 
     TX_OUTPUT_FILE, 
-    REF_STAGE_FOLDER,
     AMOUNT_VARIATIONS,
     TYPE_NAME_VARIATIONS,
     TYPE_VALUE_VARIATIONS,

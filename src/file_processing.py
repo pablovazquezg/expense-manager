@@ -3,7 +3,7 @@ import os
 import glob
 import shutil
 import asyncio
-from typing import Tuple
+from typing import Optional, Union, Dict
 from datetime import datetime
 
 # Third-party library imports
@@ -11,15 +11,13 @@ import pandas as pd
 from dateparser import parse
 
 # Local application/library specific imports
-from src.inspect_file import extract_tx_data
+from src.extract_tx_data import extract_tx_data
 from src.categorize_tx_list import categorize_tx_list
 from src.config import (
-    DATA_CHECKS_STAGE_FOLDER,
-    DATA_CHECKS_OUTPUT_FILE,
-    REF_OUTPUT_FILE,
-    TX_STAGE_FOLDER, 
+    REF_OUTPUT_FILE, 
     TX_OUTPUT_FILE, 
-    REF_STAGE_FOLDER,
+    TX_INPUT_FOLDER,
+    TX_ARCHIVE_FOLDER,
     CR_VARIATIONS,
     DB_VARIATIONS)
 
@@ -30,7 +28,7 @@ from src.config import (
 #TODO: Remove all print statements and amounts
 
 # Read file and process it (e.g. categorize transactions)
-async def process_file(input_file_path: str) -> Tuple[str, bool, str]:
+async def process_file(file_path: str) -> Dict[str, Union[str, pd.DataFrame]]:
     """
     Process the input file by reading, cleaning, standardizing, and categorizing the transactions.
 
@@ -39,22 +37,23 @@ async def process_file(input_file_path: str) -> Tuple[str, bool, str]:
 
     Returns:
         None
-    """
-    # TODO: Update this if not using return values
+    """  
+
+    result= {'file_path': file_path, 'output': pd.DataFrame(), 'error': ''}
     try:
         # Read file into standardized tx format: source, date, type, category, description, amount 
-        tx_list = standardize_tx_format(input_file_path)
+        tx_list = standardize_tx_format(file_path)
 
         # Categorize transactions
-        categorized_tx_list = await categorize_tx_list(tx_list)
+        result['output'] = await categorize_tx_list(tx_list)
+        print(f'File {os.path.basename(file_path)} processed successfully.')
 
-        # Save output file to interim folder
-        save_interim_results(input_file_path, categorized_tx_list)
     except Exception as e:
         # Return an error indicator and exception info
-        return (input_file_path, False, str(e))
+        print(f'Error processing file {file_path}: {e}')
+        result['error'] = str(e)
     
-    return (input_file_path, True, "Success")
+    return result
 
 
 
@@ -68,8 +67,8 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Prepared transaction data.
     """
-    
-    tx_list = pd.read_csv(file_path, index_col=False)
+
+    tx_list = pd.read_csv(file_path, index_col=False)    
     tx_list.columns = tx_list.columns.str.lower().str.strip()
 
     # Extract relevant columns and determine data format
@@ -89,17 +88,17 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
 
     # Convert amounts to floats    
     tx_list.loc[:,'amount'] = tx_list.loc[:,'amount'].apply(
-        lambda x: float(x.replace('.', '').replace(',', '.')) 
-            if isinstance(x, str) and ',' in x and (('.' not in x) or (x.rfind('.') < x.rfind(',')))
-            else float(x.replace(',', '')) if isinstance(x, str) 
+        lambda x: float(x.replace('.', '').replace(',', '.')) # European format (e.g. 1.234,56)
+            if isinstance(x, str) and ',' in x and (('.' not in x) or (x.rfind('.') < x.rfind(','))) # European format (e.g. 1.234,56)
+            else float(x.replace(',', '')) if isinstance(x, str) # US format (e.g. 1,234.56)
             else x
         )
 
     # Standardize types values and amount signs based on data format
     if (data_format == "TYPE_AMOUNTS"):
-        # Standardize types
+        # Standardize type to 'C' and 'D' (i.e. credits and debits)
         tx_list.loc[:,'type'] = tx_list.loc[:,'type'].apply(lambda x: 'C' if x.lower() in CR_VARIATIONS else 'D' if x.lower() in DB_VARIATIONS else None)
-        # Standardize amounts based on type
+        # Make amount signs consistent with type (i.e. credits are positive, debits are negative)
         tx_list.loc[:, 'amount'] = tx_list.apply(lambda x: abs(x['amount']) if x['type'] == 'C' else -abs(x['amount']), axis=1)
     else: 
         # Data format is ONLY_AMOUNTS (i.e. no type or Cr/Db columns; type is determined by amount sign)
@@ -109,7 +108,7 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
         if count_pos > count_neg:
             tx_list.loc[:, 'amount'] = -tx_list.loc[:, 'amount']
 
-        # Standardize types based on amounts
+        # Standardize type based on amounts (i.e. positive amounts are credits, negative amounts are debits)
         tx_list.loc[:, 'type'] = tx_list.apply(lambda x: 'C' if x['amount'] >= 0 else 'D', axis=1)
 
     # Add source and reindex to desired tx format; category column is new and therefore empty
@@ -118,31 +117,12 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
 
     return tx_list
 
-
-def save_interim_results(processed_file: str, categorized_tx_list: pd.DataFrame) -> None:
-    """
-    Save interim results to the appropriate folders.
-
-    Args:
-        input_file_path (str): Path to the input file.
-        data_checks (list): Data checks results.
-        categorized_tx_list (pd.DataFrame): Categorized transaction list.
-
-    Returns:
-        None
-    """
     #TODO: Remove TODOs
     #TODO: Update docstrings
-    # Save file with categorized transactions to interim folder
-    # All interim files will be merged at the end to create the final output file
-    # See 'merge_files' function for more details
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    file_name = os.path.basename(processed_file)
-    file_path = os.path.join(TX_STAGE_FOLDER, f"{timestamp}_{file_name}")
-    categorized_tx_list.to_csv(file_path, index=False, header=False)
 
 
-def merge_files(in_folder: str, out_file: str) -> None:
+#TODO: Normalize type hinting
+def save_results(results: list) -> None:
     """
     Merge all interim results in the input folder and write the merged results to the output file.
 
@@ -154,41 +134,47 @@ def merge_files(in_folder: str, out_file: str) -> None:
         None
     """
 
-    # Get a list of all CSV files in the input folder
-    files = glob.glob(os.path.join(in_folder, "*.CSV")) + glob.glob(os.path.join(in_folder, "*.csv"))
+    # Concatenate all (valid) results into a single DataFrame
+    # Print errors to console
+    ok_files = []
+    ko_files = []
+    error_messages = []
 
-    if files:  # Merge all interim results (if there are any)
-        df = pd.concat(
-            [pd.read_csv(file, header=None) for file in files], ignore_index=True
-        )
-
-        # Write contents to output file (based on file type)
-        if out_file == TX_OUTPUT_FILE:
-            df.columns = ['Source', 'Date', 'Type', 'Category', 'Description', 'Amount']            
-            df.to_csv(out_file, mode="a", index=False, header=not os.path.exists(out_file))
-        elif out_file == REF_OUTPUT_FILE:
-            df.columns = ['Description', 'Category']
-            # Add master file to interim results
-            previous_master = pd.read_csv(REF_OUTPUT_FILE, names=['Description', 'Category'], header=0)
-            df = pd.concat([df, previous_master], ignore_index=True)
-            # Drop duplicates, sort, and write to create new Master File
-            df.drop_duplicates(subset=['Description']).sort_values(by=['Description']).to_csv(out_file, mode="w", index=False, header=True)
+    col_list = ['Source', 'Date', 'Type', 'Category', 'Description', 'Amount']
+    tx_list = pd.DataFrame(columns=col_list)
+    for result in results:
+        if not result['error']:
+            ok_files.append(result['file_path'])
+            result_df = result['output']
+            result_df.columns = col_list
+            tx_list = pd.concat([tx_list, result_df], ignore_index=True)
         else:
-            raise ValueError("Invalid output file type.")
+            ko_files.append(result['file_path'])
+            error_msg = f"{result['file_path']}: {result['error']}"
+            error_messages.append(error_msg)  
+
+    # Write contents to output file (based on file type)
+    tx_list.to_csv(TX_OUTPUT_FILE, mode="a", index=False, header=not os.path.exists(TX_OUTPUT_FILE))
+
+    new_ref_data = tx_list[['Description', 'Category']]
+    if os.path.exists(REF_OUTPUT_FILE):
+        # If it exists, add master file to interim results
+        old_ref_data = pd.read_csv(REF_OUTPUT_FILE, names=['Description', 'Category'], header=0)
+        new_ref_data = pd.concat([old_ref_data, new_ref_data], ignore_index=True)
+        
+    # Drop duplicates, sort, and write to create new Master File
+    new_ref_data.drop_duplicates(subset=['Description']).sort_values(by=['Description']).to_csv(REF_OUTPUT_FILE, mode="w", index=False, header=True)
+
+    # Summarize results
+    print(f"\nProcessed {len(results)} files: {len(ok_files)} successful, {len(ko_files)} with errors.\n")
+    if len(ko_files):
+        print(f"Errors in the following files:")
+        print('     \n'.join(error_messages))
 
 
-def delete_stage_files() -> None:
-    """
-    Delete all files in the input folder.
-
-    Args:
-        in_folder (str): Path to the input folder containing the files to be deleted.
-
-    Returns:
-        None
-    """
-
-    for folder in [DATA_CHECKS_STAGE_FOLDER, REF_STAGE_FOLDER, TX_STAGE_FOLDER]:
-        files = glob.glob(os.path.join(folder, "*.CSV")) + glob.glob(os.path.join(folder, "*.csv"))
-        for file in files:
-            os.remove(file)
+def archive_files() -> None:
+    
+    for file_name in os.listdir(TX_INPUT_FOLDER):
+        source_path = os.path.join(TX_INPUT_FOLDER, file_name)
+        destination_path = os.path.join(TX_ARCHIVE_FOLDER, file_name)
+        shutil.move(source_path, destination_path)

@@ -13,25 +13,15 @@ from dotenv import load_dotenv
 
 # Local application/library specific imports
 from src.config import (
-    DATA_CHECKS_ARCHIVE_FOLDER,
-    DATA_CHECKS_OUTPUT_FILE,
-    DATA_CHECKS_STAGE_FOLDER,
-    REF_ARCHIVE_FOLDER,
     REF_OUTPUT_FILE,
-    REF_STAGE_FOLDER,
     TX_ARCHIVE_FOLDER,
     TX_INPUT_FOLDER,
     TX_OUTPUT_FILE,
-    TX_STAGE_FOLDER,
     LOG_FILE,
     LOG_LEVEL
 )
 
-from src.file_processing import delete_stage_files, merge_files, process_file
-#TODO: Async. first, async for all files. then consider multiprocessing for multiple files at once.
-#TODO: Add account
-#TODO: Add Debit / Credit
-#TODO: More sophisticated on the amounts
+from src.file_processing import archive_files, save_results, process_file
 #TODO: Bring back data checks and alert user when there are issues
 async def main():
     # Set up runnning environment
@@ -44,19 +34,18 @@ async def main():
     file_paths = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV")) + glob.glob(os.path.join(TX_INPUT_FOLDER, "*.csv"))
 
     tasks = []
-    for file in file_paths:
-        tasks.append(process_file(file))
+    for file_path in file_paths:
+        tasks.append(process_file(file_path))
 
     # Run all tasks concurrently
-    await asyncio.gather(*tasks)
-    
-    # Merge all interim results; append results to output files
-    merge_files(DATA_CHECKS_STAGE_FOLDER, DATA_CHECKS_OUTPUT_FILE)
-    merge_files(REF_STAGE_FOLDER, REF_OUTPUT_FILE)
-    merge_files(TX_STAGE_FOLDER, TX_OUTPUT_FILE)
+    results = await asyncio.gather(*tasks)
 
-    # Archive interim files
-    delete_stage_files()
+    # Save results to file
+    save_results(results)
+
+    #TODO: Uncomment when data checks are implemented
+    # Archive input files
+    # archive_files()
 
 
 if __name__ == "__main__":
