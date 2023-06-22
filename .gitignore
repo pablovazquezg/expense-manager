@@ -155,7 +155,12 @@ cython_debug/
 #.idea/
 
 # User-specific stuff
-data/*
+# Ignore all files within the data folder
+data/**
+# Exclude the data folder itself
 !data/
-log/*
+
+# Ignore all files within the log folder
+log/**
+# Exclude the log folder itself
 !log/

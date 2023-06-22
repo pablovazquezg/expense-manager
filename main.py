@@ -23,7 +23,7 @@ from src.config import (
 )
 
 
-
+# TODO: Ensure log is created if it doesn't exist
 async def main():
     # Set up environment
     load_dotenv()
