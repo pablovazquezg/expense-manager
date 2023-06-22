@@ -156,6 +156,10 @@ cython_debug/
 
 # User-specific stuff
 data/*
-!data/**
+data/**/*
+!data/
+!data/**/
 log/*
-!log/**
+log/**/*
+!log/
+!log/**/
