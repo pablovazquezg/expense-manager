@@ -24,7 +24,7 @@ from src.config import (
 
 
 #TODO: Clean all TODOs in this file
-#TODO: Git not to upload data files
+#TODO: Git not to upload data files but upload folder structure
 #TODO: Dates and amount signs, divisa management
 #TODO: Remove all print statements and amounts
 
