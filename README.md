@@ -19,10 +19,11 @@ expense_manager
 
 
 ---
-
+<div align="left">
 ## 📚 Table of Contents
 
-- [� Table of Contents](#-table-of-contents)
+- [📚 Table of Contents](#-table-of-contents)
+- [](#)
 - [📍 Overview](#-overview)
 - [⚙️ Features](#️-features)
 - [📂 Project Structure](#-project-structure)
@@ -34,7 +35,7 @@ expense_manager
   - [🧪 Running Tests](#-running-tests)
 - [📄 License](#-license)
 - [👏 Acknowledgments](#-acknowledgments)
-
+</div>
 ---
 
 ## 📍 Overview
