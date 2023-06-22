@@ -2,13 +2,7 @@ langchain
 streamlit
 python-dotenv
 openai
-deeplake
-tiktoken
-pandasai
-tiktoken
-scikit-learn
 tenacity
 rapidfuzz
-aiomultiprocess
 pydantic
 dateparser
