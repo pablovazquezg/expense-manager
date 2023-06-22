@@ -2,53 +2,51 @@
 import os
 import glob
 import logging
-import pandas as pd
-import concurrent.futures
+import asyncio
 
 # Third-party library imports
-import asyncio
-import langchain
-import pandas as pd
 from dotenv import load_dotenv
+import langchain
 
 # Local application/library specific imports
 from src.file_processing import archive_files, save_results, process_file
 from src.config import (
-    REF_OUTPUT_FILE,
     TX_ARCHIVE_FOLDER,
     TX_INPUT_FOLDER,
-    TX_OUTPUT_FILE,
     LOG_FILE,
     LOG_LEVEL
 )
 
 
-# TODO: Ensure log is created if it doesn't exist
 async def main():
-    # Set up environment
+    """
+    Main function to initialize environment, process CSV files, 
+    save the results, and archive the processed files.
+    """
+
     load_dotenv()
+    
+    # Set langchain's debug level
     langchain.debug = False
+    
+    # Configure logging with file, level, and format
     logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL, format='%(asctime)s %(levelname)s %(name)s %(message)s')
     logger = logging.getLogger(__name__)
 
-    # Get all CSV files in the input folder
-    file_paths = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV")) + glob.glob(os.path.join(TX_INPUT_FOLDER, "*.csv"))
+    # Create and run an asyncio task to process each file
+    file_paths = glob.glob(os.path.join(TX_INPUT_FOLDER, "*.csv"), recursive=True) + glob.glob(os.path.join(TX_INPUT_FOLDER, "*.CSV"), recursive=True)    
+    tasks = [process_file(file_path) for file_path in file_paths]
 
-    tasks = []
-    for file_path in file_paths:
-        tasks.append(process_file(file_path))
-
-    # Run all tasks concurrently
-    print('\nProcessing files...')
+    print('\nProcessing files...')    
     results = await asyncio.gather(*tasks)
 
-    # Save results to file
+    # Save results to output file and archive input files
     save_results(results)
-
-    #TODO: Uncomment when data checks are implemented
-    # Archive input files
-    # archive_files()
+    archive_files()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    finally:
+        logging.shutdown()

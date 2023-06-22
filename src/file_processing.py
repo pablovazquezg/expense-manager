@@ -3,8 +3,8 @@ import os
 import glob
 import shutil
 import logging
-import asyncio
-from typing import Optional, Union, Dict
+import warnings
+from typing import Optional, Union, Dict, List
 from datetime import datetime
 
 # Third-party library imports
@@ -24,20 +24,16 @@ from src.config import (
 
 
 #TODO: Clean all TODOs in this file
-#TODO: Git not to upload data files but upload folder structure
-#TODO: Dates and amount signs, divisa management
-#TODO: Remove all print statements and amounts
-
 # Read file and process it (e.g. categorize transactions)
 async def process_file(file_path: str) -> Dict[str, Union[str, pd.DataFrame]]:
     """
     Process the input file by reading, cleaning, standardizing, and categorizing the transactions.
 
     Args:
-        input_file_path (str): Path to the input file.
+        file_path (str): Path to the input file.
 
     Returns:
-        None
+        Dict[str, Union[str, pd.DataFrame]]: Dictionary containing the file name, processed output, and error information if any
     """  
 
     logger = logging.getLogger(__name__)
@@ -50,7 +46,7 @@ async def process_file(file_path: str) -> Dict[str, Union[str, pd.DataFrame]]:
         # Categorize transactions
         result['output'] = await categorize_tx_list(tx_list)
         print(f'File processed sucessfully: {file_name}')
-    #TODO: Log error
+
     except Exception as e:
         # Return an error indicator and exception info
         logging.log(logging.ERROR, f"| File: {file_name} | Unexpected Error: {e}")
@@ -80,7 +76,8 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
     # See 'extract_tx_data' function for more details on data formats
     tx_list, data_format = extract_tx_data(tx_list)
 
-    # Standardize dates to YYYY/MM/DD format
+    # Standardize dates to YYYY/MM/DD format (ignoring non-actionable warnings)
+    warnings.filterwarnings('ignore', 'Parsing dates', category=UserWarning)
     tx_list['date'] = pd.to_datetime(tx_list['date'], infer_datetime_format=True).dt.strftime('%Y/%m/%d')
     
     # Check if credits and debits are in separate columns
@@ -122,12 +119,8 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
 
     return tx_list
 
-    #TODO: Remove TODOs
-    #TODO: Update docstrings
 
-
-#TODO: Normalize type hinting
-def save_results(results: list) -> None:
+def save_results(results: List) -> None:
     """
     Merge all interim results in the input folder and write the merged results to the output file.
 

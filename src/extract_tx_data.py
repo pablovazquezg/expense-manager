@@ -19,7 +19,6 @@ from src.config import (
 )
 
 
-#TODO: Refactor all code
 def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     """
     Analyzes the transaction DataFrame and determines the format and column positions.
@@ -40,7 +39,18 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
 
     # Find the first column that contains any date keyword (first date is often the transaction date)
     date_col = next((col for col in columns if any(alias in col for alias in DATE_VARIATIONS)), None)
+    if not date_col:
+        logger.error(f"No date column found in file: {tx_list.attrs['file_name']}")
+        raise ValueError("No date column found in the input data")
 
+    # Columns containing date keywords not to be considered as description or amount columns (fixes edge cases detected)
+    desc_col = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
+    if not desc_col:
+        logger.error(f"No description column found in file: {tx_list.attrs['file_name']}")
+        raise ValueError("No description column found in the input data")
+    
+    amount_col = next((col for col in columns if any(alias in col for alias in AMOUNT_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
+        
     # Find position of the type column; if a candidate is found, check values to confirm
     type_col = None
     for col in columns:
@@ -48,12 +58,7 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
             type_column_values = set(tx_list[col].str.lower().unique())
             if type_column_values.issubset(set(TYPE_VALUE_VARIATIONS)):
                 type_col = col
-                break
-
-
-    # Columns containing date keywords not to be considered as description or amount columns (fixes edge cases detected)
-    desc_col = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
-    amount_col = next((col for col in columns if any(alias in col for alias in AMOUNT_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
+                break    
 
     # Try to determine format based on type and amount columns
     if amount_col and type_col:

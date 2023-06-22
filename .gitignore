@@ -155,11 +155,5 @@ cython_debug/
 #.idea/
 
 # User-specific stuff
-data/*
-data/**/*
-!data/
-!data/**/
-log/*
-log/**/*
-!log/
-!log/**/
+/log/
+/data/
