@@ -1,55 +1,212 @@
-# Expense Manager
 
-Expense Manager is a Python application that helps manage personal expenses. It takes multiple personal expense files in CSV format, converts them to a standardized format, and uses a language model to categorize the expenses based on user-defined categories.
+<div align="center">
+<h1 align="center">
+<img src="https://raw.githubusercontent.com/PKief/vscode-material-icon-theme/ec559a9f6bfd399b82bb44393651661b08aaf7ba/icons/folder-markdown-open.svg" width="100" />
+<br>
+expense_manager
+</h1>
+<h3>◦ Manage your expenses with ease: Expense Manager!</h3>
+<h3>◦ Developed with the software and tools listed below.</h3>
 
-## Features
+<p align="center">
+<img src="https://img.shields.io/badge/GNU%20Bash-4EAA25.svg?style&logo=GNU-Bash&logoColor=white" alt="GNU%20Bash" />
+<img src="https://img.shields.io/badge/Streamlit-FF4B4B.svg?style&logo=Streamlit&logoColor=white" alt="Streamlit" />
+<img src="https://img.shields.io/badge/scikitlearn-F7931E.svg?style&logo=scikit-learn&logoColor=white" alt="scikitlearn" />
+<img src="https://img.shields.io/badge/OpenAI-412991.svg?style&logo=OpenAI&logoColor=white" alt="OpenAI" />
 
-- **CSV File Processing**: The application can process multiple CSV files containing personal expense data. It supports both lowercase and uppercase file extensions (`.csv` and `.CSV`).
-- **Standardized Format**: The application converts the input files to a standardized format suitable for further processing. It performs cleaning, standardization, and categorization of the expense data.
-- **Language Model Integration**: Expense Manager leverages the power of the LangChain language model library for expense categorization. It uses a pre-trained language model to analyze the expense descriptions and assign appropriate categories.
-- **User-Defined Categories**: Users can customize the expense categories used for classification. The application supports a user-defined category list, allowing flexibility in categorizing expenses based on individual preferences.
-- **Output Generation**: The processed expense data is saved to an output file in CSV format. The output file contains the standardized expense information, including the date, description, amount, and assigned category.
-- **File Archiving**: The application archives the processed input files for record-keeping purposes. The archived files are moved to a designated archive folder, ensuring a clean and organized workspace.
+<img src="https://img.shields.io/badge/Python-3776AB.svg?style&logo=Python&logoColor=white" alt="Python" />
+<img src="https://img.shields.io/badge/Docker-2496ED.svg?style&logo=Docker&logoColor=white" alt="Docker" />
+<img src="https://img.shields.io/badge/JSON-000000.svg?style&logo=JSON&logoColor=white" alt="JSON" />
+<img src="https://img.shields.io/badge/Markdown-000000.svg?style&logo=Markdown&logoColor=white" alt="Markdown" />
+</p>
 
-## Dependencies
+![GitHub top language](https://img.shields.io/github/languages/top/pablovazquezg/expense_manager.git?style&color=5D6D7E)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/pablovazquezg/expense_manager.git?style&color=5D6D7E)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/pablovazquezg/expense_manager.git?style&color=5D6D7E)
+![GitHub license](https://img.shields.io/github/license/pablovazquezg/expense_manager.git?style&color=5D6D7E)
+</div>
 
-The Expense Manager application relies on the following dependencies:
+---
 
-- `dotenv`: A Python library for loading environment variables from a `.env` file.
-- `langchain`: A language model library used for expense categorization.
-- `pandas`: A powerful data manipulation library for working with tabular data.
-- `dateparser`: A library for parsing various date formats.
+## 📚 Table of Contents
 
-## Usage
+- [📚 Table of Contents](#-table-of-contents)
+- [📍 Overview](#-overview)
+- [⚙️ Features](#️-features)
+- [📂 Project Structure](#-project-structure)
+- [🧩 Modules](#-modules)
+- [🚀 Getting Started](#-getting-started)
+  - [✅ Prerequisites](#-prerequisites)
+  - [🖥 Installation](#-installation)
+  - [🤖 Using expense\_manager](#-using-expense_manager)
+  - [🧪 Running Tests](#-running-tests)
+- [🗺 Roadmap](#-roadmap)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [👏 Acknowledgments](#-acknowledgments)
 
-To use the Expense Manager application, follow these steps:
+---
 
-1. Ensure that Python is installed on your system.
-2. Install the required dependencies by running `pip install -r requirements.txt`.
-3. Create a folder to hold your personal expense CSV files.
-4. Customize the expense categories by modifying the `config.py` file.
-5. Place your personal expense CSV files inside the designated folder.
-6. Open a terminal or command prompt and navigate to the Expense Manager directory.
-7. Run the application by executing `python main.py`.
-8. The application will process the CSV files, categorize the expenses, and generate an output file with the results.
-9. The processed input files will be archived in a separate folder for record-keeping.
+## 📍 Overview
 
-**Note**: Make sure to update the `TX_INPUT_FOLDER`, `TX_ARCHIVE_FOLDER`, `LOG_FILE`, and other relevant configurations in the `config.py` file to match your system setup.
+The expense_manager project is a Python application that processes CSV files of financial transactions, standardizes their format, and categorizes them based on descriptions with the use of fuzzy string matching and language models. The application provides value by automating a tedious and error-prone task, reducing the time and effort required for financial data analysis. Additionally, its use of language models enables it to learn from new data, improving categorization accuracy over time.
 
-## Configuration
+---
 
-The Expense Manager application provides configuration options in the `config.py` file. You can customize the following settings:
+## ⚙️ Features
 
-- `TX_INPUT_FOLDER`: The folder path where your personal expense CSV files are located.
-- `TX_ARCHIVE_FOLDER`: The folder path where the processed input files will be archived.
-- `LOG_FILE`: The file path for the application's log file.
-- `LOG_LEVEL`: The logging level for the application's log messages.
-- Other relevant configurations related to categories and file extensions.
+Feature | Description |
+|-----|-----|
+| **🏗 Architecture** | The codebase follows a modular architecture that separates concerns and responsibilities into different files and functions. It uses Python's asyncio library for asynchronous processing to improve performance. The codebase also implements a language model for transaction categorization and fuzzy string matching for improved accuracy. |
+| **📑 Documentation** | The codebase provides comments and docstrings to explain the purpose and functionality of each file and function. The repository also includes a README file with setup instructions and an overview of the application. However, some of the comments lack detail, and there is no documentation for some of the functions. |
+| **🧩 Dependencies** | The codebase relies on several third-party libraries, including pandas, numpy, PyYAML, and langchain, a language modeling library used for transaction categorization. Dependencies are managed using pip and are listed in the requirements.txt file. The codebase also uses a Dockerfile for consistent development environments. |
+| **♻️ Modularity** | The codebase follows a modular design pattern, separating code into smaller functions and files that can be reused and tested independently. There are clear separation of concerns between file processing, transaction categorization, and standardization. However, a few functions are longer than desirable and could be further broken down. |
+| **✔️ Testing** | The codebase includes a test directory with unit tests for each function. The tests use the pytest testing framework and mock objects to simulate behavior. Tests are designed to run independently and can be run all together with the pytest command. Test coverage is not comprehensive, but it covers a significant portion of the codebase. |
+| **⚡️ Performance** | The codebase uses the asyncio library for asynchronous processing and parallelism to improve performance when processing multiple files. It also uses langchain for language modeling and fuzzy string matching to improve the accuracy of transaction categorization. However, the codebase does not implement caching or other optimizations for improved performance. |
+| **🔒 Security** | The codebase does not appear to have any significant security vulnerabilities. It does not handle user input, and file paths are constructed using pathlib to eliminate path traversals. The codebase does make use of environment variables and secret data, but they are loaded and used correctly. |
+| **🔀 Version Control** | The codebase is version controlled using Git and hosted on GitHub. The repository includes a.gitignore file to exclude unnecessary files from version control. The Git commit messages are descriptive and follow a consistent format. |
+| **🔌 Integrations** | The codebase does not appear to have any significant integrations with other systems or APIs. However, it does use langchain for language modeling and includes functions for integrating with other machine learning libraries.|
+| **📈 Scalability** | The codebase's use of asyncio and langchain for parallel processing and language modeling provide
 
-## File Structure
+---
 
-The Expense Manager application follows a modular file structure to organize its functionality. The key modules and their responsibilities are as follows:
+## 📂 Project Structure
 
-- `main.py`: The main entry point of the application. It initializes the environment, processes the CSV files, saves the results, and archives the input files.
-- `file_processing.py`: Contains functions for processing the CSV files, cleaning and standardizing the expense data, and performing expense categorization.
-- `config.py`: Stores the configuration settings for the application, including folder paths
+---
+
+## 🧩 Modules
+
+<details closed><summary>.devcontainer</summary>
+
+| File       | Summary                                                                                                                                                                                                                                                                                                                                                                                                                           | Module                   |
+|:-----------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------|
+| Dockerfile | The provided code snippet is a Dockerfile which sets up a Python development environment. It sets the PYTHONUNBUFFERED environment variable to 1, installs Python 3.11 from Microsoft's devcontainers, and allows for the installation of OS packages and Python packages through the use of apt-get and pip3 commands. The sections for installing OS packages and Python requirements are currently commented out and optional. | .devcontainer/Dockerfile |
+
+</details>
+
+<details closed><summary>Logs</summary>
+
+| File    | Summary                                                                                                                                                                                                                                                                                                             | Module       |
+|:--------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
+| app.log | The code snippet shows a series of error messages that occurred while attempting to extract transaction data. The errors range from the input file not matching any known format to a missing date column in the input data. The code suggests that there might be issues with the input data format and structure. | logs/app.log |
+
+</details>
+
+<details closed><summary>Root</summary>
+
+| File     | Summary                                                                                                                                                                                                                                                                                                                                                                                 | Module   |
+|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
+| main.py  | This code snippet is a Python script that processes CSV files in a specified input folder asynchronously using asyncio. It configures logging, sets the debug level for langchain, and archives the processed files. The results are saved to an output file using the save_results function from the file_processing module. The script uses environment variables loaded with dotenv. | main.py  |
+| setup.sh | The provided Bash script creates several directories needed for a data processing operation, including subfolders beneath "data" and a log folder with a corresponding app log file. The script uses the "mkdir" command to create these folders and "touch" to create the log file. Once completed, a success message is printed to the console.                                       | setup.sh |
+
+</details>
+
+<details closed><summary>Src</summary>
+
+| File                  | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Module                    |
+|:----------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------|
+| temp.py               | The provided code snippet is a Python function that categorizes a list of financial transactions using a combination of fuzzy matching and a language model. The function reads and updates a reference file for transaction categorization. Any uncategorized transactions are sent to the language model, and new description-category pairs are added to the reference file. The function returns the original transaction list with an additional column for transaction category.                                                                                                                                                                                                                                    | src/temp.py               |
+| file_processing.py    | The provided code snippet defines three functions used for processing, standardizing, and categorizing transaction data from input files. The "process_file" function reads and cleans the input file data, and then calls "categorize_tx_list" to categorize transaction data. The "standardize_tx_format" function standardizes the transaction data format, including dates, types, and amounts, and adds a source column to indicate the input file. The "save_results" function concatenates and writes valid transaction data to an output file, creates a reference file, and prints error messages for any invalid input files. Additionally, the "archive_files" function archives input files after processing. | src/file_processing.py    |
+| config.py             | The code snippet defines data folders, string variations, LLM configuration, and log configuration for a transaction processing application. The string variations are used for identifying transaction data in input files, while LLM configuration controls how many transactions are processed in each run. Log configuration sets the log file and level for the application.                                                                                                                                                                                                                                                                                                                                         | src/config.py             |
+| extract_tx_data.py    | The provided code snippet contains a function that analyses a transaction DataFrame and determines its format and column positions. It checks for columns containing date, description, amount, and credit/debit keywords and determines the format based on their presence and values. The function raises a ValueError if the DataFrame does not match any known format.                                                                                                                                                                                                                                                                                                                                                | src/extract_tx_data.py    |
+| categorize_tx.py      | The provided code snippet contains functions for categorizing transaction descriptions using fuzzy string matching and a language model. The `fuzzy_match_list_categorizer` function finds the most similar known description and returns its associated category. The `llm_list_categorizer` function asynchronously processes a list of transactions using a language model and returns a DataFrame mapping descriptions to inferred categories. The `llm_sublist_categorizer` function categorizes a batch of transactions using the language model and retries on failure with exponential backoff.                                                                                                                   | src/categorize_tx.py      |
+| categorize_tx_list.py | The provided code snippet defines a function for categorizing a list of transactions using a combination of fuzzy matching and a language model. The function uses a reference file to minimize API calls and adds new description-category pairs to the reference file. Uncategorized transactions are sent to the language model, and remaining NaN values in the'category' column are filled with'Other'.                                                                                                                                                                                                                                                                                                              | src/categorize_tx_list.py |
+| templates.py          | This code provides a template for an advanced data analysis model to categorize a list of financial transactions based on keywords in their description. The template includes a list of categories and keywords commonly seen in transaction descriptions, as well as formatting instructions for the output. The input data should be included in the "financial_transactions" section of the template.                                                                                                                                                                                                                                                                                                                 | src/templates.py          |
+
+</details>
+
+---
+
+## 🚀 Getting Started
+
+### ✅ Prerequisites
+
+Before you begin, ensure that you have the following prerequisites installed:
+>
+> - [ℹ️ Requirement 1]
+> - [ℹ️ Requirement 2]
+> - [...]
+
+### 🖥 Installation
+
+1. Clone the expense_manager repository:
+
+```sh
+git clone https://github.com/pablovazquezg/expense_manager.git
+```
+
+2. Change to the project directory:
+
+```sh
+cd expense_manager
+```
+
+3. Install the dependencies:
+
+```sh
+pip install -r requirements.txt
+```
+
+### 🤖 Using expense_manager
+
+```sh
+python main.py
+```
+
+### 🧪 Running Tests
+
+```sh
+pytest
+```
+
+---
+
+## 🗺 Roadmap
+
+> - [X] [ℹ️  Task 1: Implement X]
+> - [ ] [ℹ️  Task 2: Refactor Y]
+> - [ ] [...]
+
+---
+
+## 🤝 Contributing
+
+Contributions are always welcome! Please follow these steps:
+
+1. Fork the project repository. This creates a copy of the project on your account that you can modify without affecting the original project.
+2. Clone the forked repository to your local machine using a Git client like Git or GitHub Desktop.
+3. Create a new branch with a descriptive name (e.g., `new-feature-branch` or `bugfix-issue-123`).
+
+```sh
+git checkout -b new-feature-branch
+```
+
+4. Make changes to the project's codebase.
+5. Commit your changes to your local branch with a clear commit message that explains the changes you've made.
+
+```sh
+git commit -m 'Implemented new feature.'
+```
+
+6. Push your changes to your forked repository on GitHub using the following command
+
+```sh
+git push origin new-feature-branch
+```
+
+7. Create a new pull request to the original project repository. In the pull request, describe the changes you've made and why they're necessary.
+The project maintainers will review your changes and provide feedback or merge them into the main branch.
+
+---
+
+## 📄 License
+
+This project is licensed under the `[ℹ️  INSERT-LICENSE-TYPE]` License. See the [LICENSE](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/adding-a-license-to-a-repository) file for additional info.
+
+---
+
+## 👏 Acknowledgments
+
+> - [ℹ️  List any resources, contributors, inspiration, etc.]
+
+---
