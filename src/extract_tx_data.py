@@ -54,7 +54,7 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     # Columns containing date keywords not to be considered as description or amount columns (fixes edge cases detected)
     desc_col = next((col for col in columns if any(alias in col for alias in DESC_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
     amount_col = next((col for col in columns if any(alias in col for alias in AMOUNT_VARIATIONS) and not any(alias in col for alias in DATE_VARIATIONS)), None)
-    # TODO: Manage scenario where type is indicative and amount has sign
+
     # Try to determine format based on type and amount columns
     if amount_col and type_col:
         # Credits/debits determined by 'type' column; all amounts are positive
@@ -72,7 +72,6 @@ def extract_tx_data(tx_list: pd.DataFrame) -> tuple:
     db_pos = next((col for col in tx_list.columns if col.lower() in DB_VARIATIONS), None)
 
     if cr_pos and db_pos:
-        #TODO: Manage scenario where credit/debit columns are indicative and amount has sign
         # Credits/debits in separate columns; all amounts are positive
         tx_list = tx_list.loc[:, [date_col, desc_col, cr_pos, db_pos]]
         tx_list.columns = ['date', 'description', 'credit', 'debit']

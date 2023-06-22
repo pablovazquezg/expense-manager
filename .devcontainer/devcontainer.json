@@ -13,16 +13,5 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "python3 -m pip install --upgrade pip && python3 -m pip install --user -r requirements.txt",
 	// Configure tool-specific properties.
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"Gydunhn.vsc-essentials",
-				"GitHub.copilot-nightly",
-				"GitHub.copilot-chat",
-				"ms-python.pylint",
-			]
-		}
-		// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-		// "remoteUser": "root"
-	}
+	"customizations": {}
 }

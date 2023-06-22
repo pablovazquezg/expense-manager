@@ -9,7 +9,6 @@ import pandas as pd
 from src.config import REF_OUTPUT_FILE
 from src.categorize_tx import llm_list_categorizer, fuzzy_match_list_categorizer
 
-#TODO: Update folder structure
 async def categorize_tx_list(tx_list: pd.DataFrame) -> pd.DataFrame:
     """
     Asynchronously categorizes a list of transactions.

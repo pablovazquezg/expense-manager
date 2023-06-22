@@ -12,6 +12,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 # Local application/library specific imports
+from src.file_processing import archive_files, save_results, process_file
 from src.config import (
     REF_OUTPUT_FILE,
     TX_ARCHIVE_FOLDER,
@@ -21,8 +22,8 @@ from src.config import (
     LOG_LEVEL
 )
 
-from src.file_processing import archive_files, save_results, process_file
-#TODO: Bring back data checks and alert user when there are issues
+
+
 async def main():
     # Set up runnning environment
     load_dotenv()

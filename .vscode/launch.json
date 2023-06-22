@@ -5,17 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Streamlit",
-            "type": "python",
-            "request": "launch",
-            "program": "/path/to/your/streamlit",
-            "args": [
-                "run",
-                "/workspaces/expense_manager/main.py"
-            ],
-            "console": "integratedTerminal"
-        },
-        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
@@ -27,7 +16,7 @@
             "name": "Python: main.py",
             "type": "python",
             "request": "launch",
-            "program": "/workspaces/expense_manager/main.py",
+            "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "args": [
                 "-Xfrozen_modules=off"
@@ -35,10 +24,10 @@
             "justMyCode": true
         },
         {
-            "name": "Detailed Python: main.py",
+            "name": "Python all code: main.py",
             "type": "python",
             "request": "launch",
-            "program": "/workspaces/expense_manager/main.py",
+            "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
             "justMyCode": false
         }
