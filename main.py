@@ -25,7 +25,7 @@ from src.config import (
 
 
 async def main():
-    # Set up runnning environment
+    # Set up environment
     load_dotenv()
     langchain.debug = False
     logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL, format='%(asctime)s %(levelname)s %(name)s %(message)s')
