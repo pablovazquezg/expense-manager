@@ -10,4 +10,4 @@ mkdir -p data/tx_data/output
 mkdir -p log
 touch log/app.log
 
-echo "Setup completed successfully!"
+echo "Setup completed successfully"
