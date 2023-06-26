@@ -1,9 +1,13 @@
-# Expense Manager
+# Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
+
+> `expense-manager` is a utility that consolidates and categorizes all your income/expenses, and helps you get a clear picture of where your money comes from, and where it goes 
+
+
+
 #TODO: Add logo and .gif file
-#TODO: Add idea to create a pivot table
+#TODO: Install requirements
 #TODO: Add info re token usage
 
-> `expense-manager` is a utility that consolidates and categorizes all your income/expenses, and helps you get a clear picture of where your money comes from, and where it goes
 
 ![Shallow Backup GIF Demo](img/shallow-backup-demo.gif)
 
@@ -85,6 +89,8 @@ $ ./setup.sh
 > **NOTE:**
 > Results are saved to the `/data/tx_data/output` folder
 
-## What else should I know or think about?
+## What else should I know?
+In case you don't already know, you can create a nice income/expense tracker very easily taking the output of the `expense-manager` and creating an Excel Pivot table with it; you can see an example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)
+
 ## License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
