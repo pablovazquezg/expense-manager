@@ -1,166 +1,90 @@
+# Expense Manager
+#TODO: Add logo and .gif file
+#TODO: Add idea to create a pivot table
+#TODO: Add info re token usage
 
-<div align="center">
-<h1 align="center">
-<img src="https://raw.githubusercontent.com/PKief/vscode-material-icon-theme/ec559a9f6bfd399b82bb44393651661b08aaf7ba/icons/folder-markdown-open.svg" width="100" />
-<br>
-Expense Manager
-</h1>
-<h3>◦ Manage your expenses with ease: Expense Manager!</h3>
-<h3>◦ Developed with the software and tools listed below.</h3>
+> `expense-manager` is a utility that consolidates and categorizes all your income/expenses, and helps you get a clear picture of where your money comes from, and where it goes
 
-<p align="center">
-<img src="https://img.shields.io/badge/GNU%20Bash-4EAA25.svg?style&logo=GNU-Bash&logoColor=white" alt="GNU%20Bash" />
-<img src="https://img.shields.io/badge/OpenAI-412991.svg?style&logo=OpenAI&logoColor=white" alt="OpenAI" />
-<img src="https://img.shields.io/badge/Python-3776AB.svg?style&logo=Python&logoColor=white" alt="Python" />
-<img src="https://img.shields.io/badge/Docker-2496ED.svg?style&logo=Docker&logoColor=white" alt="Docker" />
-<img src="https://img.shields.io/badge/JSON-000000.svg?style&logo=JSON&logoColor=white" alt="JSON" />
-<img src="https://img.shields.io/badge/Markdown-000000.svg?style&logo=Markdown&logoColor=white" alt="Markdown" />
-</p>
+![Shallow Backup GIF Demo](img/shallow-backup-demo.gif)
+
+## Contents
+
+ * [What is this?](#what-is-this) 
+ * [What can it do for me?](#what-can-it-do-for-me)
+ * [How does it work?](#how-does-it-work)
+ * [How can I use it?](#how-can-i-use-it)
+ * [What else should I know?](#what-else-should-i-know)
+ * [License (MIT)](#git-integration)
 
 
----
-<div align="left">
-## 📚 Table of Contents
+## What is this?
+If you are here, you probably want me to give you the basics about `expense-manager`. In short, it is a free utility that can:
+1. **Read all those account activity .csv files** you download from your bank and credit card companies (even if they are in different formats)
 
-- [📚 Table of Contents](#-table-of-contents)
-- [](#)
-- [📍 Overview](#-overview)
-- [⚙️ Features](#️-features)
-- [📂 Project Structure](#-project-structure)
-- [🧩 Modules](#-modules)
-- [🚀 Getting Started](#-getting-started)
-  - [✅ Prerequisites](#-prerequisites)
-  - [🖥 Installation](#-installation)
-  - [🤖 Using expense\_manager](#-using-expense_manager)
-  - [🧪 Running Tests](#-running-tests)
-- [📄 License](#-license)
-- [👏 Acknowledgments](#-acknowledgments)
-</div>
----
+2. **Consolidate all your transactions** into a single, standardized view
 
-## 📍 Overview
+3. **Assign a type (i.e. credit/debit) and a category** (e.g. groceries) to each of them (it comes with standard category list, which you could customize to meet your needs) which allows you to **see exactly where your money comes from, and where it goes**
 
-The expense_manager project is a Python application that processes CSV files of financial transactions, standardizes their format, and categorizes them based on descriptions with the use of fuzzy string matching and language models. The application provides value by automating a tedious and error-prone task, reducing the time and effort required for financial data analysis. Additionally, its use of language models enables it to learn from new data, improving categorization accuracy over time.
 
----
+## WHY would I use this?
+You want to know what's in for you, so you can decide if you should keep reading or leave now; I'll help you decide in three paragraphs:
 
-## ⚙️ Features
+`Context`: You find value in understanding how much money you are making, how much you are spending, and in which categories. It makes you feel in control, increases your financial awareness, and helps you gradually refine/improve your decision-making abilities. In other words, it contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
 
-Feature | Description |
-|-----|-----|
-| **🏗 Architecture** | The codebase follows a modular architecture that separates concerns and responsibilities into different files and functions. It uses Python's asyncio library for asynchronous processing to improve performance. The codebase also implements a language model for transaction categorization and fuzzy string matching for improved accuracy. |
-| **📑 Documentation** | The codebase provides comments and docstrings to explain the purpose and functionality of each file and function. The repository also includes a README file with setup instructions and an overview of the application. However, some of the comments lack detail, and there is no documentation for some of the functions. |
-| **🧩 Dependencies** | The codebase relies on several third-party libraries, including pandas, numpy, PyYAML, and langchain, a language modeling library used for transaction categorization. Dependencies are managed using pip and are listed in the requirements.txt file. The codebase also uses a Dockerfile for consistent development environments. |
-| **♻️ Modularity** | The codebase follows a modular design pattern, separating code into smaller functions and files that can be reused and tested independently. There are clear separation of concerns between file processing, transaction categorization, and standardization. However, a few functions are longer than desirable and could be further broken down. |
-| **✔️ Testing** | The codebase includes a test directory with unit tests for each function. The tests use the pytest testing framework and mock objects to simulate behavior. Tests are designed to run independently and can be run all together with the pytest command. Test coverage is not comprehensive, but it covers a significant portion of the codebase. |
-| **⚡️ Performance** | The codebase uses the asyncio library for asynchronous processing and parallelism to improve performance when processing multiple files. It also uses langchain for language modeling and fuzzy string matching to improve the accuracy of transaction categorization. However, the codebase does not implement caching or other optimizations for improved performance. |
-| **🔒 Security** | The codebase does not appear to have any significant security vulnerabilities. It does not handle user input, and file paths are constructed using pathlib to eliminate path traversals. The codebase does make use of environment variables and secret data, but they are loaded and used correctly. |
-| **🔀 Version Control** | The codebase is version controlled using Git and hosted on GitHub. The repository includes a.gitignore file to exclude unnecessary files from version control. The Git commit messages are descriptive and follow a consistent format. |
-| **🔌 Integrations** | The codebase does not appear to have any significant integrations with other systems or APIs. However, it does use langchain for language modeling and includes functions for integrating with other machine learning libraries.|
-| **📈 Scalability** | The codebase's use of asyncio and langchain for parallel processing and language modeling provide
+`Problem`: Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is time-consuming and error prone, and **you end up not doing it for months at a time or at all**.
 
----
+`Solution:` With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, you run a script, **and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) section to see what I do)
 
-## 📂 Project Structure
+## HOW does it work?
 
----
+This sounds interesting and you want to know more right? You've come to the right section:
+### Prerequisites
++ Python 3
++ OpenAI API key added to your environment variables ([instructions](https://www.immersivelimit.com/tutorials/adding-your-openai-api-key-to-system-environment-variables))
 
-## 🧩 Modules
+### Process outline:
+1. **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
 
-<details closed><summary>.devcontainer</summary>
+1. **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
 
-| File       | Summary                                                                                                                                                                                                                                                                                                                                                                                                                           | Module                   |
-|:-----------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------|
-| Dockerfile | The provided code snippet is a Dockerfile which sets up a Python development environment. It sets the PYTHONUNBUFFERED environment variable to 1, installs Python 3.11 from Microsoft's devcontainers, and allows for the installation of OS packages and Python packages through the use of apt-get and pip3 commands. The sections for installing OS packages and Python requirements are currently commented out and optional. | .devcontainer/Dockerfile |
+1. Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see next section for details.
 
-</details>
+1. The new **description-category pairs** obtained from the LLM are **stored into a reference file**.
 
-<details closed><summary>Logs</summary>
+1. In all future runs, the utility first looks up each description in this reference file. If it finds one that is similar enough, it picks up the associated category and it moves on to the next transaction; **this materially reduces the number of API calls** required over time, since many transactions are repetitive in nature (we are creatures of habit).
 
-| File    | Summary                                                                                                                                                                                                                                                                                                             | Module       |
-|:--------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------|
-| app.log | The code snippet shows a series of error messages that occurred while attempting to extract transaction data. The errors range from the input file not matching any known format to a missing date column in the input data. The code suggests that there might be issues with the input data format and structure. | logs/app.log |
+1. The **final list** of categorized transactions is **saved into a .csv file**.  
 
-</details>
 
-<details closed><summary>Root</summary>
+> **NOTE:**
+> `expense-manager` fully respects your privacy and doesn't collect any data at all. However, it does send the transaction descriptions (and only the descriptions) to an OpenAI LLM to obtain the associated category. OpenAI claims not to sell or use this data for any purposes, (starting on March 1st, 2023, not even to train their own models) but just be aware that's how the program works.
 
-| File     | Summary                                                                                                                                                                                                                                                                                                                                                                                 | Module   |
-|:---------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------|
-| main.py  | This code snippet is a Python script that processes CSV files in a specified input folder asynchronously using asyncio. It configures logging, sets the debug level for langchain, and archives the processed files. The results are saved to an output file using the save_results function from the file_processing module. The script uses environment variables loaded with dotenv. | main.py  |
-| setup.sh | The provided Bash script creates several directories needed for a data processing operation, including subfolders beneath "data" and a log folder with a corresponding app log file. The script uses the "mkdir" command to create these folders and "touch" to create the log file. Once completed, a success message is printed to the console.                                       | setup.sh |
+## HOW can I use it?
+At this point you are sold and want to use this. Here's how to do it:
+### Installation
 
-</details>
-
-<details closed><summary>Src</summary>
-
-| File                  | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Module                    |
-|:----------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------|
-| temp.py               | The provided code snippet is a Python function that categorizes a list of financial transactions using a combination of fuzzy matching and a language model. The function reads and updates a reference file for transaction categorization. Any uncategorized transactions are sent to the language model, and new description-category pairs are added to the reference file. The function returns the original transaction list with an additional column for transaction category.                                                                                                                                                                                                                                    | src/temp.py               |
-| file_processing.py    | The provided code snippet defines three functions used for processing, standardizing, and categorizing transaction data from input files. The "process_file" function reads and cleans the input file data, and then calls "categorize_tx_list" to categorize transaction data. The "standardize_tx_format" function standardizes the transaction data format, including dates, types, and amounts, and adds a source column to indicate the input file. The "save_results" function concatenates and writes valid transaction data to an output file, creates a reference file, and prints error messages for any invalid input files. Additionally, the "archive_files" function archives input files after processing. | src/file_processing.py    |
-| config.py             | The code snippet defines data folders, string variations, LLM configuration, and log configuration for a transaction processing application. The string variations are used for identifying transaction data in input files, while LLM configuration controls how many transactions are processed in each run. Log configuration sets the log file and level for the application.                                                                                                                                                                                                                                                                                                                                         | src/config.py             |
-| extract_tx_data.py    | The provided code snippet contains a function that analyses a transaction DataFrame and determines its format and column positions. It checks for columns containing date, description, amount, and credit/debit keywords and determines the format based on their presence and values. The function raises a ValueError if the DataFrame does not match any known format.                                                                                                                                                                                                                                                                                                                                                | src/extract_tx_data.py    |
-| categorize_tx.py      | The provided code snippet contains functions for categorizing transaction descriptions using fuzzy string matching and a language model. The `fuzzy_match_list_categorizer` function finds the most similar known description and returns its associated category. The `llm_list_categorizer` function asynchronously processes a list of transactions using a language model and returns a DataFrame mapping descriptions to inferred categories. The `llm_sublist_categorizer` function categorizes a batch of transactions using the language model and retries on failure with exponential backoff.                                                                                                                   | src/categorize_tx.py      |
-| categorize_tx_list.py | The provided code snippet defines a function for categorizing a list of transactions using a combination of fuzzy matching and a language model. The function uses a reference file to minimize API calls and adds new description-category pairs to the reference file. Uncategorized transactions are sent to the language model, and remaining NaN values in the'category' column are filled with'Other'.                                                                                                                                                                                                                                                                                                              | src/categorize_tx_list.py |
-| templates.py          | This code provides a template for an advanced data analysis model to categorize a list of financial transactions based on keywords in their description. The template includes a list of categories and keywords commonly seen in transaction descriptions, as well as formatting instructions for the output. The input data should be included in the "financial_transactions" section of the template.                                                                                                                                                                                                                                                                                                                 | src/templates.py          |
-
-</details>
-
----
-
-## 🚀 Getting Started
-
-### ✅ Prerequisites
-
-Before you begin, ensure that you have the following prerequisites installed:
->
-> - [ℹ️ Requirement 1]
-> - [ℹ️ Requirement 2]
-> - [...]
-
-### 🖥 Installation
-
-1. Clone the expense_manager repository:
-
-```sh
-git clone https://github.com/pablovazquezg/expense_manager.git
+```bash
+$ git clone https://github.com/pablovazquezg/expense_manager.git
+$ cd expense-manager
+$ ./setup.sh
 ```
 
-2. Change to the project directory:
 
-```sh
-cd expense_manager
-```
-
-3. Install the dependencies:
-
-```sh
-pip install -r requirements.txt
-```
-
-### 🤖 Using expense_manager
-
-```sh
-python main.py
-```
-
-### 🧪 Running Tests
-
-```sh
-pytest
-```
-
+### Usage
 ---
++ Drop your .csv files in the `/data/tx_data/input` folder
 
-## 📄 License
++ If you want to add the new set of transactions to your historical file, you can simple run `expense-manager` now:
+    ```bash
+    python expense-manager.py
+    ```
++ Alternatively, if you want to overwrite your historical file and create a new one, you can use the -n flag (n as in 'new'): 
+    ```bash
+    python expense-manager.py -n
+    ```
+> **NOTE:**
+> Results are saved to the `/data/tx_data/output` folder
 
-This project is licensed under the `[ℹ️  MIT]` License. See the [LICENSE] file for additional info.
-
----
-
-## 👏 Acknowledgments
-
-> - [ℹ️  I may be a tiny little speck, but I stand on the shoulders of giants. From this position, I strive to build good things and leave my corner of the world just a little better than how I found it. I would like to express my heartfelt thanks to the talented folks working hard at Langchain. I would also like to extend my gratitude to all those brave souls who have contributed to the libraries used by this project and to the Python programming language itself. Hat tip to you all!
-]
-
----
+## What else should I know or think about?
+## License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
