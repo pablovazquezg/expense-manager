@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Install dependencies
+pip install -r requirements.txt
+
 # Create data folder and its subfolders
 mkdir -p data/ref_data
 mkdir -p data/tx_data/archive
