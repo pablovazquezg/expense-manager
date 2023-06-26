@@ -16,7 +16,7 @@
             "name": "Python: main.py",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/main.py",
+            "program": "main.py",
             "console": "integratedTerminal",
             "args": [
                 "-Xfrozen_modules=off"
@@ -27,7 +27,7 @@
             "name": "Python all code: main.py",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/main.py",
+            "program": "main.py",
             "console": "integratedTerminal",
             "justMyCode": false
         }
