@@ -1,10 +1,9 @@
-<div>
-<a href="cost-estimates">
-  <img src="https://github.com/pablovazquezg/expense_manager/blob/master/media/readme-header.png"  align="left" />
-</a>
-</div>
-<br/><br/>
-<div>
+![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readme-header.png)
+
+<br/>
+<br/>
+<br/>
+
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
 > `expense-manager` is a utility that consolidates and categorizes all your personal financial transactions (both income and expenses), and helps you get a clear picture of where your money comes from, and where it goes 💸
@@ -73,11 +72,11 @@ As a point of reference, I've been using this for my own purposes with data from
 **TLDR:** You can process a full month for 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details)
 
 > NOTE: These estimates are based on the pricing of the `gpt-3.5-turbo` model as of July 1st 2023 ($0.002 / 1K tokens)
+![API Cost Estimates](https://github.com/pablovazquezg/expense_manager/blob/master/media/cost_estimates.png)
 
-<a href="cost-estimates">
-  <img src="https://github.com/pablovazquezg/expense_manager/blob/master/media/cost_estimates.png"  align="left" />
-</a>
-<br />
+<br/>
+<br/>
+<br/>
 
 ## ⭐ HOW can I use it?
 At this point you are sold and want to use this. Here's how to do it:
@@ -113,4 +112,3 @@ $ ./setup.sh
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 #TODO: Add logo and .gif file
-</div>
