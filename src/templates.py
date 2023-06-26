@@ -6,7 +6,7 @@ EXPENSE_CAT_TEMPLATE = """
     </context>
     
     <categories>
-    The following list contains the categories and keywords you often see in transaction descriptions:
+    The following list contains the categories and associated keywords you often see in transaction descriptions:
     -ATM: atm, cash, withdraw
     -Auto: auto body
     -Bars: bar, pubs, irish, brewery
