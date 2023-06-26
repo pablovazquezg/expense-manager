@@ -1,7 +1,7 @@
 <a href="cost-estimates">
   <img src="https://github.com/pablovazquezg/expense_manager/blob/master/media/readme-header.png"  align="left" />
 </a>
-<br/>
+<br/><br/>
 
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
