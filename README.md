@@ -1,8 +1,6 @@
 ![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readme-header.png)
 
 <br/>
-<br/>
-<br/>
 
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
@@ -72,10 +70,9 @@ As a point of reference, I've been using this for my own purposes with data from
 **TLDR:** You can process a full month for 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details)
 
 > NOTE: These estimates are based on the pricing of the `gpt-3.5-turbo` model as of July 1st 2023 ($0.002 / 1K tokens)
+
 ![API Cost Estimates](https://github.com/pablovazquezg/expense_manager/blob/master/media/cost_estimates.png)
 
-<br/>
-<br/>
 <br/>
 
 ## ⭐ HOW can I use it?
