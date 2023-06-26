@@ -1,7 +1,5 @@
 ![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readme-header.png)
 
-<br/>
-
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
 > `expense-manager` is a utility that consolidates and categorizes all your personal financial transactions (both income and expenses), and helps you get a clear picture of where your money comes from, and where it goes 💸
