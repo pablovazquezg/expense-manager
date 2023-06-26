@@ -1,3 +1,23 @@
+<br/>
+
+<div align="center" style="margin: 30px;">
+<a href="https://refine.dev/">
+  <img src="https://raw.githubusercontent.com/refinedev/refine/master/logo.png"   style="width:350px;" align="center" />
+</a>
+<br />
+<br />
+
+<div align="center">
+    <a href="https://refine.dev">Home Page</a> |
+    <a href="https://discord.gg/refine">Discord</a> |
+    <a href="https://refine.dev/examples/">Examples</a> |
+    <a href="https://refine.dev/blog/">Blog</a> |
+    <a href="https://refine.dev/docs/">Documentation</a>
+</div>
+</div>
+
+<br />
+
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
 > `expense-manager` is a utility that consolidates and categorizes all your income/expenses, and helps you get a clear picture of where your money comes from, and where it goes 
@@ -45,6 +65,11 @@ This sounds interesting and you want to know more right? You've come to the righ
 ### Prerequisites
 + Python 3
 + OpenAI API key added to your environment variables ([instructions](https://www.immersivelimit.com/tutorials/adding-your-openai-api-key-to-system-environment-variables))
++ These dependencies will be installed by the setup script:
+    - `openai, langchain, tenacity, pydantic`: used to make and validate LLM API calls
+    - `rapidfuzz`: used to find similar descriptions that have been categorized in the past
+    - `python-dotenv`: used to load environment variables; you know this one
+    - `dateparser`: date standardization
 
 ### Process outline:
 1. **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
@@ -62,6 +87,7 @@ This sounds interesting and you want to know more right? You've come to the righ
 
 > **NOTE:**
 > `expense-manager` fully respects your privacy and doesn't collect any data at all. However, it does send the transaction descriptions (and only the descriptions) to an OpenAI LLM to obtain the associated category. OpenAI claims not to sell or use this data for any purposes, (starting on March 1st, 2023, not even to train their own models) but just be aware that's how the program works.
+
 
 ## HOW can I use it?
 At this point you are sold and want to use this. Here's how to do it:
