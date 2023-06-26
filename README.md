@@ -1,20 +1,4 @@
-<br/>
 
-<div align="center" style="margin: 30px;">
-<a href="cost-estimates">
-  <img src="https://github.com/pablovazquezg/expense_manager/blob/master/media/cost_estimates.png"  align="left" />
-</a>
-<br />
-<br />
-
-<div align="center">
-    <a href="https://refine.dev">Home Page</a> |
-    <a href="https://discord.gg/refine">Discord</a> |
-    <a href="https://refine.dev/examples/">Examples</a> |
-    <a href="https://refine.dev/blog/">Blog</a> |
-    <a href="https://refine.dev/docs/">Documentation</a>
-</div>
-</div>
 
 <br />
 
@@ -88,7 +72,18 @@ This sounds interesting and you want to know more right? You've come to the righ
 > **NOTE:**
 > `expense-manager` fully respects your privacy and doesn't collect any data at all. However, it does send the transaction descriptions (and only the descriptions) to an OpenAI LLM to obtain the associated category. OpenAI claims not to sell or use this data for any purposes, (starting on March 1st, 2023, not even to train their own models) but just be aware that's how the program works.
 
+### Cost estimates
+The OpenAI API cost per run will depend on two factors:
+1. Total number of calls required
+1. Cost per call, which will depend on the number of tokens per call, and the price per token (established by OpenAI)
 
+As a point of reference, I've been using this for my own purposes with data from around 10+ different US institutions, and the average call has required around 1300 tokens (this includes both prompt and completion). Since each API call processes a batch of 10 transactions, you can process a full month for 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details)
+
+<a href="cost-estimates">
+  <img src="https://github.com/pablovazquezg/expense_manager/blob/master/media/cost_estimates.png"  align="left" />
+</a>
+
+> NOTE: These estimates are based on the API pricing as of July 1st 2023 ($0.002 / 1K tokens)
 ## HOW can I use it?
 At this point you are sold and want to use this. Here's how to do it:
 ### Installation
