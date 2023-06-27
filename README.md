@@ -17,7 +17,7 @@
 
 
 ## What is this?
-`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv)).
+`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here.](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv))
 
 Next, you pass those files to the `expense-manager`, which automatically consolidates them into a single view, and assigns a category to each of their transactions choosing from a common, standardized category list (which you could customize as needed). 
 ## What can it do for me?
