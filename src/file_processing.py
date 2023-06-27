@@ -171,9 +171,31 @@ def save_results(results: List) -> None:
         print('\n')
 
 
-def archive_files() -> None:
+def manage_processed_files(d_flag: bool) -> None:
+    """
+    Manage processed files by either deleting them or moving them to the archive folder.
+
+    Args:
+        d_flag (bool): If True, delete all processed files, including those in the archive folder.
+                       If False, move all processed files to the archive folder.
+
+    Returns:
+        None
+    """
     
-    for file_name in os.listdir(TX_INPUT_FOLDER):
-        source_path = os.path.join(TX_INPUT_FOLDER, file_name)
-        destination_path = os.path.join(TX_ARCHIVE_FOLDER, file_name)
-        shutil.move(source_path, destination_path)
+    input_files = os.listdir(TX_INPUT_FOLDER)
+
+    if d_flag: # Delete processed files, including those in archive folder
+        
+        for file in input_files:
+            os.remove(os.path.join(TX_INPUT_FOLDER, file))
+        
+        archived_files = os.listdir(TX_ARCHIVE_FOLDER)
+        for file in archived_files:
+            os.remove(os.path.join(TX_ARCHIVE_FOLDER, file))
+    else:
+        # Move processed files to archive folder
+        for file in input_files:
+            source_path = os.path.join(TX_INPUT_FOLDER, file)
+            destination_path = os.path.join(TX_ARCHIVE_FOLDER, file)
+            shutil.move(source_path, destination_path)

@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 import langchain
 
 # Local application/library specific imports
-from src.file_processing import archive_files, save_results, process_file
+from src.file_processing import manage_processed_files, save_results, process_file
 from src.config import (
     TX_ARCHIVE_FOLDER,
     TX_INPUT_FOLDER,
@@ -21,6 +21,25 @@ from src.config import (
     LOG_FILE,
     LOG_LEVEL
 )
+
+def read_args(args: list) -> bool:
+    n_flag = False
+    d_flag = False
+    
+    if args:
+        for arg in args:
+            if arg == '-n': # Delete previous output file and create a new one
+                n_flag = True
+            elif arg == '-d': # Deletes all processed files at the end of the program
+                d_flag = True
+            elif arg == '-nd': # Combined effects of -n and -d flags
+                n_flag = True
+                d_flag = True
+            else:
+                print(f'Invalid argument: {arg}')
+                sys.exit(1)
+        
+    return n_flag, d_flag
 
 
 async def main():
@@ -36,12 +55,11 @@ async def main():
     # Set langchain's debug level
     langchain.debug = False
     
-    # If the '-n' (new file) flag is present, then delete previous output file
-    if '-n' in sys.argv:
-        try:
-            os.remove(TX_OUTPUT_FILE)
-        except FileNotFoundError:
-            pass
+    # -n flag: deletes previous output file and creates a new one
+    # -d flag: deletes all processed files at the end of the program
+    n_flag, d_flag = read_args(sys.argv[1:])
+    if n_flag and os.path.isfile(TX_OUTPUT_FILE):
+        os.remove(TX_OUTPUT_FILE)
     
     # Configure logging with file, level, and format
     logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL, format='%(asctime)s %(levelname)s %(name)s %(message)s')
@@ -56,7 +74,7 @@ async def main():
 
     # Save results to output file and archive input files
     save_results(results)
-    archive_files()
+    manage_processed_files(d_flag)
 
 
 if __name__ == "__main__":

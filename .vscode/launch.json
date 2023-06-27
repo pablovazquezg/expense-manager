@@ -16,18 +16,15 @@
             "name": "Python: main.py",
             "type": "python",
             "request": "launch",
-            "program": "main.py",
+            "program": "expense-manager.py",
             "console": "integratedTerminal",
-            "args": [
-                "-Xfrozen_modules=off"
-            ],
             "justMyCode": true
         },
         {
             "name": "Python all code: main.py",
             "type": "python",
             "request": "launch",
-            "program": "main.py",
+            "program": "expense-manager.py",
             "console": "integratedTerminal",
             "justMyCode": false
         }

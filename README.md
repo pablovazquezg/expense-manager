@@ -21,19 +21,19 @@ Next, you pass those files to the `expense-manager`, which automatically consoli
 ## What can it do for me?
 You want to know what's in for you, so you can decide if you should keep reading or leave now; I'll help you decide in three paragraphs:
 
-ℹ️ **Context:** You find value in understanding how much money you are making, how much you are spending, and in which categories. It makes you feel in control, increases your financial awareness, and helps you gradually refine/improve your decision-making abilities. In other words, it contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
+ℹ️ **Context:** Knowing exactly how much money you are making and spending (in each category) increases your financial awareness and helps you gradually refine/improve your decision-making abilities. This contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
 
 🚩 **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is **time-consuming and error prone, and you end up not doing it for months at a time or at all**.
 
-🔥 **Solution:** With `expense-manager`, **you can just download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, **run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format ([example](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png)), so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how).
+🔥 **Solution:** With `expense-manager`, **you can just download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), drop the files in the input folder, **run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format ([example](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png)), so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how).
 
 ## How does it work?
 
 This sounds interesting and you want to know more right? You've come to the right section:
 ### Prerequisites
-+ Python 3
-+ OpenAI API key added to your environment variables ([instructions](https://www.immersivelimit.com/tutorials/adding-your-openai-api-key-to-system-environment-variables))
-+ These dependencies will be installed by the setup script:
+- Python 3
+- OpenAI API key added to your environment variables ([instructions](https://www.immersivelimit.com/tutorials/adding-your-openai-api-key-to-system-environment-variables))
+- These dependencies will be installed by the setup script:
     - `openai, langchain, tenacity, pydantic`: used to make and validate LLM API calls
     - `rapidfuzz`: used to find similar descriptions that have been categorized in the past
     - `python-dotenv`: used to load environment variables; you know this one
@@ -45,7 +45,7 @@ This sounds interesting and you want to know more right? You've come to the righ
 
 1. **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
 
-1. Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see next section for details.
+1. Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see the [What else should I know?](#what-else-should-i-know) section for details.
 
 1. The new **description-category pairs** obtained from the LLM are **stored into a reference file**.
 
@@ -64,7 +64,7 @@ The OpenAI API cost per run will depend on two factors:
 
 As a point of reference, I've been using this for my own purposes with data from around 10+ different US institutions, and the average call has required around 1300 tokens. This includes both the prompt and the completion required to process 10 transactions, since we send 10 descriptions to the LLM in each call.
 
-**TLDR:** You can process a full month for 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details)
+**TLDR:** The approximate cost of processing a month of transactions is 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details)
 
 > NOTE: These estimates are based on the pricing of the `gpt-3.5-turbo` model as of July 1st 2023 ($0.002 / 1K tokens)
 
@@ -73,41 +73,58 @@ As a point of reference, I've been using this for my own purposes with data from
 ## How can I use it?
 At this point you are sold and want to use `expense-manager`. Here's how to do it:
 ### Installation
-
+**Step 1:** Clone the repository and `cd` into the `expense-manager` folder:
 ```bash
-$ git clone https://github.com/pablovazquezg/expense_manager.git
-$ cd expense-manager
-$ ./setup.sh
+git clone https://github.com/pablovazquezg/expense_manager.git
+cd expense-manager
+```
+**Step 2:** Execute the `setup.sh` script:
+```bash
+./setup.sh
 ```
 
 
 ### Usage
 
-+ Drop your .csv files in the `/data/tx_data/input` folder
+**Step 1:** Drop your .csv file(s) in the `/data/tx_data/input` folder
 
-+ If you want to add the new set of transactions to your historical file, you can simple run `expense-manager` now:
-    ```bash
-    python expense-manager.py
-    ```
-+ Alternatively, if you want to overwrite your historical file and create a new one, you can use the `-n` flag (n as in 'new'): 
-    ```bash
-    python expense-manager.py -n
-    ```
+**Step 2:** Run `expense-manager`:
 
-+ After each execution, input files will be moved from `/data/tx_data/input` to `/data/tx_data/archive` folder; if you want to delete them, you can do that using the `-d` flag (as in 'delete')
-    ```bash
-    python expense-manager.py -d
-    ```
-    
+```bash
+python expense-manager.py
+```
+
+By default, `expense-manager` will append its output to its previous output, effectively creating a historical view of your transactions. To create a new file instead, use the `-n` flag (n as in 'new'):
+
+```bash
+python expense-manager.py -n
+```
+
 > **NOTE:**
 > The output file is saved to the `/data/tx_data/output` folder
+> 
 
+<br/>
+
+By default, input files will be moved from `/data/tx_data/input` to `/data/tx_data/archive` after each execution; if you prefer to delete them instead, you can do that using the `-d` flag (as in 'delete'). **Please note this will also delete files processed in previous executions.**
+
+```bash
+python expense-manager.py -d
+```
+
+Last but not least, you can combine the `-n` (create new file) and the `-d` (delete / don't archive) flags
+
+```bash
+python expense-manager.py -nd
+```
+    
 
 ## What else should I know?
-- In case you don't already know, you can create a nice income/expense tracker very easily taking the output of the `expense-manager` and creating an Excel Pivot table from it; you can see an example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)
+- You can very easily use the output you receive from `expense-manager` to create a nice income/expense tracker that puts you back in charge of your personal finances; example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)
 - The description-category pairs obtained from the LLM are stored in `/data/ref_data/ref_master_data.csv`. If in the future you want `expense-manager` to pick a different category for a specific description, you can simply update this file
-- If there are any execution errors, `expense-manager` will log them in the `/logs` folder
-
+- `expense-manager` automatically detects and supports American (1,234.56) and European formats (1.234,56), as well as many different date formats
+- If you want to update the income/expense categories (or their associated keywords), you can do that in the `<categories>` section of the `/src/templates.py` file
+- If there are execution errors, they will be loggged in the `/logs` folder
 
 ## License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
