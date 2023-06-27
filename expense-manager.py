@@ -5,6 +5,7 @@ import os
 import glob
 import logging
 import asyncio
+import warnings
 
 # Third-party library imports
 from dotenv import load_dotenv
@@ -25,6 +26,8 @@ async def main():
     Main function to initialize environment, process CSV files, 
     save the results, and archive the processed files.
     """
+    # Filter out UserWarnings related to DateTime parsing; these are expected since date format is inferred
+    warnings.filterwarnings("ignore", category=UserWarning, message='^Could not infer format*')
 
     load_dotenv()
     

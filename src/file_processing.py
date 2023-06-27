@@ -78,7 +78,7 @@ def standardize_tx_format(file_path: str) -> pd.DataFrame:
 
     # Standardize dates to YYYY/MM/DD format (ignoring non-actionable warnings)
     warnings.filterwarnings('ignore', 'Parsing dates', category=UserWarning)
-    tx_list['date'] = pd.to_datetime(tx_list['date'], infer_datetime_format=True).dt.strftime('%Y/%m/%d')
+    tx_list['date'] = pd.to_datetime(tx_list['date']).dt.strftime('%Y/%m/%d')
     
     # Check if credits and debits are in separate columns
     if (data_format == "CR_DB_AMOUNTS"):
