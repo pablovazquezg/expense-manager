@@ -8,6 +8,7 @@
 
 ## Contents
 
+
 - [Expense Manager ](#expense-manager-)
   - [Contents](#contents)
   - [What is this?](#what-is-this)
@@ -21,7 +22,6 @@
     - [Usage](#usage)
   - [What else should I know?](#what-else-should-i-know)
   - [License](#license)
-
 
 ## What is this?
 `expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv))
@@ -109,7 +109,7 @@ $ ./setup.sh
     ```
     
 > **NOTE:**
-> The output file is saved to the `/data/tx_data/output` folder; this is an example of what it will look like.
+> The output file is saved to the `/data/tx_data/output` folder; this is an [example](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png) of what it will look like.
 
 
 ## What else should I know?
