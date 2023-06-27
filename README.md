@@ -17,7 +17,7 @@
 
 
 ## What is this?
-`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example here).
+`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv)).
 
 Next, you pass those files to the `expense-manager`, which automatically consolidates them into a single view, and assigns a category to each of their transactions choosing from a common, standardized category list (which you could customize as needed). 
 ## What can it do for me?
@@ -43,17 +43,17 @@ This sounds interesting and you want to know more right? You've come to the righ
 
 ### Process outline:
 
-1️⃣ **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
+1️. **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
 
-2️⃣ **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
+1. **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
 
-3️⃣ Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see next section for details.
+1. Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see next section for details.
 
-4️⃣ The new **description-category pairs** obtained from the LLM are **stored into a reference file**.
+1. The new **description-category pairs** obtained from the LLM are **stored into a reference file**.
 
-5️⃣ In all future runs, the utility first looks up each description in this reference file. If it finds one that is similar enough, it picks up the associated category and it moves on to the next transaction; **this materially reduces the number of API calls** required over time, since many transactions are repetitive in nature (we are creatures of habit).
+1. In all future runs, the utility first looks up each description in this reference file. If it finds one that is similar enough, it picks up the associated category and it moves on to the next transaction; **this materially reduces the number of API calls** required over time, since many transactions are repetitive in nature (we are creatures of habit).
 
-6️⃣ The **final list** of categorized transactions is **saved into a .csv file**.  
+1. The **final list** of categorized transactions is **saved into a .csv file**.  
 
 
 > **NOTE:**
