@@ -5,3 +5,4 @@ tenacity
 rapidfuzz
 pydantic
 dateparser
+pandas
