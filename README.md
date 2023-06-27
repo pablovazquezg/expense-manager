@@ -8,12 +8,19 @@
 
 ## Contents
 
- * [What is this?](#what-is-this) 
- * [What can it do for me?](#what-can-it-do-for-me)
- * [How does it work?](#how-does-it-work)
- * [How can I use it?](#how-can-i-use-it)
- * [What else should I know?](#what-else-should-i-know)
- * [License (MIT)](#license)
+- [Expense Manager ](#expense-manager-)
+  - [Contents](#contents)
+  - [What is this?](#what-is-this)
+  - [What can it do for me?](#what-can-it-do-for-me)
+  - [How does it work?](#how-does-it-work)
+    - [Prerequisites](#prerequisites)
+    - [Process outline:](#process-outline)
+    - [Cost estimates](#cost-estimates)
+  - [How can I use it?](#how-can-i-use-it)
+    - [Installation](#installation)
+    - [Usage](#usage)
+  - [What else should I know?](#what-else-should-i-know)
+  - [License](#license)
 
 
 ## What is this?
@@ -91,16 +98,25 @@ $ ./setup.sh
     ```bash
     python expense-manager.py
     ```
-+ Alternatively, if you want to overwrite your historical file and create a new one, you can use the -n flag (n as in 'new'): 
++ Alternatively, if you want to overwrite your historical file and create a new one, you can use the `-n` flag (n as in 'new'): 
     ```bash
     python expense-manager.py -n
     ```
+
++ After each execution, input files will be moved from `/data/tx_data/input` to `/data/tx_data/archive` folder; if you want to delete them, you can do that using the `-d` flag (as in 'delete')
+    ```bash
+    python expense-manager.py -d
+    ```
+    
 > **NOTE:**
-> Results are saved to the `/data/tx_data/output` folder
+> The output file is saved to the `/data/tx_data/output` folder; this is an example of what it will look like.
+
 
 ## What else should I know?
 - In case you don't already know, you can create a nice income/expense tracker very easily taking the output of the `expense-manager` and creating an Excel Pivot table from it; you can see an example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)
-- The description-category pairs obtained from the LLM are stored in `/data/ref_data/ref_master_data.csv`. If in the future you want `expense-manager` to pick a different category for a specific description, you can simply update this file.
+- The description-category pairs obtained from the LLM are stored in `/data/ref_data/ref_master_data.csv`. If in the future you want `expense-manager` to pick a different category for a specific description, you can simply update this file
+- If there are any execution errors, `expense-manager` will log them in the `/logs` folder
+
 
 ## License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
