@@ -2,7 +2,7 @@
 
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
-> `expense-manager` is a utility that consolidates and categorizes all your personal financial transactions (both income and expenses), and helps you get a clear picture of where your money comes from, and where it goes 💸
+> `expense-manager` **is an LLM-powered utility** that can consolidate and categorize all your personal financial transactions (both income and expenses), and **helps you get a clear picture of where your money comes from, and where it goes 💸**
 
 
 
@@ -13,23 +13,23 @@
  * [How does it work?](#how-does-it-work)
  * [How can I use it?](#how-can-i-use-it)
  * [What else should I know?](#what-else-should-i-know)
- * [License (MIT)](#git-integration)
+ * [License (MIT)](#license)
 
 
 ## What is this?
-`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files (which you typically can download directly from your different financial accounts).
+`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example here).
 
 Next, you pass those files to the `expense-manager`, which automatically consolidates them into a single view, and assigns a category to each of their transactions choosing from a common, standardized category list (which you could customize as needed). 
-## WHY would I use this?
+## What can it do for me?
 You want to know what's in for you, so you can decide if you should keep reading or leave now; I'll help you decide in three paragraphs:
 
-**Context:** You find value in understanding how much money you are making, how much you are spending, and in which categories. It makes you feel in control, increases your financial awareness, and helps you gradually refine/improve your decision-making abilities. In other words, it contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
+ℹ️ **Context:** You find value in understanding how much money you are making, how much you are spending, and in which categories. It makes you feel in control, increases your financial awareness, and helps you gradually refine/improve your decision-making abilities. In other words, it contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
 
-**Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is time-consuming and error prone, and **you end up not doing it for months at a time or at all**.
+🚩 **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is time-consuming and error prone, and **you end up not doing it for months at a time or at all**.
 
-**Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, you run a script, **and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) section to see what I do)
+🔥 **Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, you run a script, **and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how)
 
-## HOW does it work?
+## How does it work?
 
 This sounds interesting and you want to know more right? You've come to the right section:
 ### Prerequisites
@@ -42,17 +42,18 @@ This sounds interesting and you want to know more right? You've come to the righ
     - `dateparser`: date standardization
 
 ### Process outline:
-1. **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
 
-1. **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
+1️⃣ **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
 
-1. Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see next section for details.
+2️⃣ **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
 
-1. The new **description-category pairs** obtained from the LLM are **stored into a reference file**.
+3️⃣ Transaction descriptions are sent in batches to an OpenAI LLM (gpt-3.5-turbo), which returns the **appropriate category for each transaction**; the category list can be customized -- see next section for details.
 
-1. In all future runs, the utility first looks up each description in this reference file. If it finds one that is similar enough, it picks up the associated category and it moves on to the next transaction; **this materially reduces the number of API calls** required over time, since many transactions are repetitive in nature (we are creatures of habit).
+4️⃣ The new **description-category pairs** obtained from the LLM are **stored into a reference file**.
 
-1. The **final list** of categorized transactions is **saved into a .csv file**.  
+5️⃣ In all future runs, the utility first looks up each description in this reference file. If it finds one that is similar enough, it picks up the associated category and it moves on to the next transaction; **this materially reduces the number of API calls** required over time, since many transactions are repetitive in nature (we are creatures of habit).
+
+6️⃣ The **final list** of categorized transactions is **saved into a .csv file**.  
 
 
 > **NOTE:**
@@ -73,8 +74,8 @@ As a point of reference, I've been using this for my own purposes with data from
 
 <br/>
 
-## HOW can I use it?
-At this point you are sold and want to use this. Here's how to do it:
+## How can I use it?
+At this point you are sold and want to use `expense-manager`. Here's how to do it:
 ### Installation
 
 ```bash
@@ -85,7 +86,7 @@ $ ./setup.sh
 
 
 ### Usage
----
+
 + Drop your .csv files in the `/data/tx_data/input` folder
 
 + If you want to add the new set of transactions to your historical file, you can simple run `expense-manager` now:
