@@ -157,5 +157,5 @@ cython_debug/
 #.idea/
 
 # User-specific stuff
-log/
+logs/
 data/
