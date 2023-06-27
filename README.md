@@ -2,7 +2,7 @@
 
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
-> `expense-manager` **is an LLM-powered utility** that can consolidate and categorize all your personal financial transactions (both income and expenses), and **helps you get a clear picture of where your money comes from, and where it goes 💸**
+> **`expense-manager` is an LLM-powered utility** that can consolidate and categorize all your personal financial transactions and **helps you get a clear picture of where your money comes from, and where it goes 💸**
 
 
 
@@ -15,7 +15,7 @@
   - [License](#license)
 
 ## What is this?
-`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv))
+**`expense-manager` is an LLM-powered utility** that can consolidate and categorize all your personal financial transactions (both income and expenses). To use it, you just need those transactions in .csv files, which you can typically download directly from your different financial accounts (see an example [here](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv))
 
 Next, you pass those files to the `expense-manager`, which automatically consolidates them into a single view, and assigns a category to each of their transactions choosing from a common, standardized category list (which you could customize as needed). 
 ## What can it do for me?
@@ -25,7 +25,7 @@ You want to know what's in for you, so you can decide if you should keep reading
 
 🚩 **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is **time-consuming and error prone, and you end up not doing it for months at a time or at all**.
 
-🔥 **Solution:** With `expense-manager`, **you can just download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), drop the files in the input folder, **run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format ([example](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png)), so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how).
+🔥 **Solution:** With `expense-manager`, **you can just download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), drop the files in the input folder, **run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This output will look like [this](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png) and will be in .csv format, allowing you to further analize it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how).
 
 ## How does it work?
 
@@ -64,7 +64,7 @@ The OpenAI API cost per run will depend on two factors:
 
 As a point of reference, I've been using this for my own purposes with data from around 10+ different US institutions, and the average call has required around 1300 tokens. This includes both the prompt and the completion required to process 10 transactions, since we send 10 descriptions to the LLM in each call.
 
-**TLDR:** The approximate cost of processing a month of transactions is 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details)
+This means that in theory, the cost of processing a month of transactions will be around 6 to 13 cents (assuming 250 - 500 transactions per month; see table below for details). In practice the cost should be lower, since `expense-manager` will not invoke the LLM if it has seen a similar transaction before (go back to the [Process outline section](#process-outline) for details)
 
 > NOTE: These estimates are based on the pricing of the `gpt-3.5-turbo` model as of July 1st 2023 ($0.002 / 1K tokens)
 
