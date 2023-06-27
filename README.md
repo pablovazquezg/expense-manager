@@ -7,9 +7,6 @@
 
 
 ## Contents
-
-
-  - [Contents](#contents)
   - [What is this?](#what-is-this)
   - [What can it do for me?](#what-can-it-do-for-me)
   - [How does it work?](#how-does-it-work)
@@ -28,7 +25,7 @@ You want to know what's in for you, so you can decide if you should keep reading
 
 🚩 **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is **time-consuming and error prone, and you end up not doing it for months at a time or at all**.
 
-🔥 **Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, **you run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how)
+🔥 **Solution:** With `expense-manager`, **you can just download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, **run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format ([example](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png)), so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how).
 
 ## How does it work?
 
@@ -103,7 +100,7 @@ $ ./setup.sh
     ```
     
 > **NOTE:**
-> The output file is saved to the `/data/tx_data/output` folder; this is an [example](https://github.com/pablovazquezg/expense_manager/blob/master/media/output-example.png) of what it will look like.
+> The output file is saved to the `/data/tx_data/output` folder
 
 
 ## What else should I know?
