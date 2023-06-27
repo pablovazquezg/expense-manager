@@ -1,4 +1,4 @@
-![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readme-header.png)
+![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readmmd-header.png)
 
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
@@ -6,7 +6,7 @@
 
 
 
-## ⭐ Contents
+## Contents
 
  * [What is this?](#what-is-this) 
  * [What can it do for me?](#what-can-it-do-for-me)
@@ -16,20 +16,20 @@
  * [License (MIT)](#git-integration)
 
 
-## ⭐ What is this?
-`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. You just need to go to your different financial accounts (checking, credit cards, etc.) to obtain a .csv file with the transactions for the period you want to analyze.
+## What is this?
+`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files (which you typically can download directly from your different financial accounts).
 
-`expense-manager` automatically reads these different files, consolidates all transactions into a single view, and assigns a category to each of them, choosing from a common, standardized category list (which you could customize as needed). 
-## ⭐ WHY would I use this?
+Next, you pass those files to the `expense-manager`, which automatically consolidates them into a single view, and assigns a category to each of their transactions choosing from a common, standardized category list (which you could customize as needed). 
+## WHY would I use this?
 You want to know what's in for you, so you can decide if you should keep reading or leave now; I'll help you decide in three paragraphs:
 
 **Context:** You find value in understanding how much money you are making, how much you are spending, and in which categories. It makes you feel in control, increases your financial awareness, and helps you gradually refine/improve your decision-making abilities. In other words, it contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
 
-- **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is time-consuming and error prone, and **you end up not doing it for months at a time or at all**.
+**Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is time-consuming and error prone, and **you end up not doing it for months at a time or at all**.
 
-- **Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, you run a script, **and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) section to see what I do)
+**Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, you run a script, **and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) section to see what I do)
 
-## ⭐ HOW does it work?
+## HOW does it work?
 
 This sounds interesting and you want to know more right? You've come to the right section:
 ### Prerequisites
@@ -73,7 +73,7 @@ As a point of reference, I've been using this for my own purposes with data from
 
 <br/>
 
-## ⭐ HOW can I use it?
+## HOW can I use it?
 At this point you are sold and want to use this. Here's how to do it:
 ### Installation
 
@@ -99,11 +99,9 @@ $ ./setup.sh
 > **NOTE:**
 > Results are saved to the `/data/tx_data/output` folder
 
-## ⭐ What else should I know?
+## What else should I know?
 - In case you don't already know, you can create a nice income/expense tracker very easily taking the output of the `expense-manager` and creating an Excel Pivot table from it; you can see an example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)
 - The description-category pairs obtained from the LLM are stored in `/data/ref_data/ref_master_data.csv`. If in the future you want `expense-manager` to pick a different category for a specific description, you can simply update this file.
 
 ## License
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-#TODO: Add logo and .gif file
