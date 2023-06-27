@@ -2,6 +2,7 @@
 
 # Standard library imports
 import os
+import sys
 import glob
 import logging
 import asyncio
@@ -16,6 +17,7 @@ from src.file_processing import archive_files, save_results, process_file
 from src.config import (
     TX_ARCHIVE_FOLDER,
     TX_INPUT_FOLDER,
+    TX_OUTPUT_FILE,
     LOG_FILE,
     LOG_LEVEL
 )
@@ -33,6 +35,13 @@ async def main():
     
     # Set langchain's debug level
     langchain.debug = False
+    
+    # If the '-n' (new file) flag is present, then delete previous output file
+    if '-n' in sys.argv:
+        try:
+            os.remove(TX_OUTPUT_FILE)
+        except FileNotFoundError:
+            pass
     
     # Configure logging with file, level, and format
     logging.basicConfig(filename=LOG_FILE, level=LOG_LEVEL, format='%(asctime)s %(levelname)s %(name)s %(message)s')
