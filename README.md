@@ -1,4 +1,4 @@
-![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readmmd-header.png)
+![Expense Generator Logo](https://github.com/pablovazquezg/expense_manager/blob/master/media/readmemd-header.png)
 
 # Expense Manager ![Static Badge](https://img.shields.io/badge/Made_with_love_in-NYC-red)
 
