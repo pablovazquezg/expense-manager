@@ -17,7 +17,7 @@
 
 
 ## What is this?
-`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here.](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv))
+`expense-manager` is a free utility that automates the process of consolidating and categorizing your personal financial transactions. To use it, you just need those transactions in .csv files, which you typically can download directly from your different financial accounts (see an example [here](https://github.com/pablovazquezg/expense_manager/blob/master/media/account_activity_example.csv))
 
 Next, you pass those files to the `expense-manager`, which automatically consolidates them into a single view, and assigns a category to each of their transactions choosing from a common, standardized category list (which you could customize as needed). 
 ## What can it do for me?
@@ -25,9 +25,9 @@ You want to know what's in for you, so you can decide if you should keep reading
 
 ℹ️ **Context:** You find value in understanding how much money you are making, how much you are spending, and in which categories. It makes you feel in control, increases your financial awareness, and helps you gradually refine/improve your decision-making abilities. In other words, it contributes to your meta-goal in life: slowly but surely steer reality towards outcomes ranking higher in your personal preferences.
 
-🚩 **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is time-consuming and error prone, and **you end up not doing it for months at a time or at all**.
+🚩 **Problem:** Your financial life has become quite complex, and you use multiple banking accounts and credit cards over any given period. You can easily download the activity/transactions for any of them, but **the .csv files you get are in slightly different formats**, and they either don't categorize your expenses, or they do but using different "buckets" and hierarchies. Consolidating all this information manually is **time-consuming and error prone, and you end up not doing it for months at a time or at all**.
 
-🔥 **Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, you run a script, **and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how)
+🔥 **Solution:** With this utility, **you simply download the transactions for the period you want to analyze** (last month, year-to-date, last year, etc.), you drop the files in the input folder, **you run a script, and voilà!, you get a beautiful consolidated list with all the expenses categorized consistently**. This list is in .csv format, so you can easily analyze it using a tool like Excel (see the [What else should I know?](#what-else-should-i-know) to see how)
 
 ## How does it work?
 
@@ -43,7 +43,7 @@ This sounds interesting and you want to know more right? You've come to the righ
 
 ### Process outline:
 
-1️. **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
+1. **Read all (.csv) files** from the input folder and extract the key information required from each transaction (date, type, description, amount).
 
 1. **Consolidate all transactions** into a single list; this typically involves some level of data wrangling.
 
@@ -71,8 +71,6 @@ As a point of reference, I've been using this for my own purposes with data from
 > NOTE: These estimates are based on the pricing of the `gpt-3.5-turbo` model as of July 1st 2023 ($0.002 / 1K tokens)
 
 ![API Cost Estimates](https://github.com/pablovazquezg/expense_manager/blob/master/media/cost_estimates.png)
-
-<br/>
 
 ## How can I use it?
 At this point you are sold and want to use `expense-manager`. Here's how to do it:
