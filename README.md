@@ -9,17 +9,11 @@
 ## Contents
 
 
-- [Expense Manager ](#expense-manager-)
   - [Contents](#contents)
   - [What is this?](#what-is-this)
   - [What can it do for me?](#what-can-it-do-for-me)
   - [How does it work?](#how-does-it-work)
-    - [Prerequisites](#prerequisites)
-    - [Process outline:](#process-outline)
-    - [Cost estimates](#cost-estimates)
   - [How can I use it?](#how-can-i-use-it)
-    - [Installation](#installation)
-    - [Usage](#usage)
   - [What else should I know?](#what-else-should-i-know)
   - [License](#license)
 
