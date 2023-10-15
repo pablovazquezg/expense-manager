@@ -119,7 +119,7 @@ python expense-manager.py -nd
     
 
 ## What else should I know?
-- You can use the output you receive from `expense-manager` to create a nice income/expense tracker that puts you back in charge of your finances (example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)). If you decide to do this, I suggest you split the view between Credits and Debits; you can also color code your expenses to obtain something like [this.](https://github.com/pablovazquezg/expense_manager/blob/master/media/expense-tracker-example.png)
+- You can use the output you receive from `expense-manager` to create a nice income/expense tracker that puts you back in charge of your finances (example [here](https://www.vertex42.com/blog/excel-tips/using-pivot-tables-to-analyze-income-and-expenses.html)). If you decide to do this, I suggest you split the view between Credits and Debits; you can also color code your expenses to obtain something like [this.](https://github.com/pablovazquezg/expense_manager/blob/master/media/expense-tracker-example.png) (some amounts hidden; don't expect totals to match).
 - The description-category pairs obtained from the LLM are stored in `/data/ref_data/ref_master_data.csv`; you can update this list to determine the category to be associated with each description in the future
 - If you want to update the income/expense categories (or their associated keywords), you can do that in the `<categories>` section of the `/src/templates.py` file
 - `expense-manager` automatically detects and supports American (1,234.56) and European amount formats (1.234,56), as well as many different date formats
